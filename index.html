@@ -112,20 +112,27 @@ body>*{position:relative;z-index:1}
 /* TABLES */
 .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:20px}
 .data-tbl{width:100%;border-collapse:collapse}
-.data-tbl th{background:var(--bg3);color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:500;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.data-tbl th{background:var(--bg3);color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2);white-space:nowrap}
 .data-tbl th.right{text-align:right}
-.data-tbl td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text);vertical-align:middle}
-.data-tbl td.mono{font-family:'DM Mono',monospace;font-size:12px}
+.data-tbl td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);vertical-align:middle}
+.data-tbl td.mono{font-family:'DM Mono',monospace;font-size:13px;font-weight:500}
 .data-tbl td.right{text-align:right}
 .data-tbl tr:last-child td{border-bottom:none}
-.data-tbl tbody tr:hover{background:rgba(255,255,255,.02)}
+.data-tbl tbody tr:hover{background:rgba(255,255,255,.03)}
 .data-tbl tr.tg td{color:var(--green)}
-.data-tbl tr.total td{font-weight:600;background:var(--bg3);border-top:1px solid var(--border2)}
-.data-tbl tr.subtotal td{font-weight:500;background:rgba(255,255,255,.02);font-size:11px;color:var(--text2)}
-.data-tbl tr.tax-row td{font-size:11px;color:var(--text3);font-style:italic}
-.data-tbl tr.zysk-row td{font-weight:600;color:var(--green);background:var(--green-bg)}
-.data-tbl tr.paid-row td{opacity:.5}
+.data-tbl tr.total td{font-weight:700;background:var(--bg3);border-top:1px solid var(--border2);font-size:13px}
+.data-tbl tr.subtotal td{font-weight:500;background:rgba(255,255,255,.02);font-size:12px;color:var(--text2)}
+.data-tbl tr.tax-row td{font-size:12px;color:var(--text3);font-style:italic}
+.data-tbl tr.zysk-row td{font-weight:700;color:var(--green);background:var(--green-bg);font-size:14px}
+.data-tbl tr.paid-row td{opacity:.45}
 .data-tbl tr.overdue-row td{background:var(--red-bg)}
+/* Right-aligned amounts — always prominent */
+.data-tbl td.right.mono, .data-tbl td[class*="col-"]{
+  font-family:'DM Mono',monospace;
+  font-size:14px;
+  font-weight:600;
+  letter-spacing:-.3px;
+}
 
 /* STATUS */
 .status{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;font-family:'DM Mono',monospace;white-space:nowrap}
@@ -349,31 +356,31 @@ th.col-franek{color:var(--green)}
 .karta-owner.franek{color:var(--green)}
 .karta-owner.firma{color:var(--yellow)}
 .karta-saldo{text-align:right}
-.karta-saldo-amount{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--red)}
-.karta-saldo-sub{font-size:10px;color:var(--text3);margin-top:2px}
-.karta-meta{display:flex;gap:16px;padding:0 16px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-.karta-meta-item{font-size:11px}
+.karta-saldo-amount{font-family:'DM Mono',monospace;font-size:26px;font-weight:700;color:var(--red)}
+.karta-saldo-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.karta-meta{display:flex;gap:20px;padding:12px 16px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.karta-meta-item{font-size:12px}
 .karta-meta-label{color:var(--text3);margin-right:4px}
-.karta-meta-val{font-family:'DM Mono',monospace;color:var(--text2)}
+.karta-meta-val{font-family:'DM Mono',monospace;color:var(--text);font-size:13px;font-weight:500}
 .karta-plan{padding:16px}
 .karta-plan-title{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px;font-weight:500}
 .karta-input-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap}
 .karta-input-row .form-group{flex:1;min-width:120px}
-.karta-schedule{max-height:260px;overflow-y:auto}
+.karta-schedule{max-height:300px;overflow-y:auto}
 .karta-schedule-row{
   display:grid;
-  grid-template-columns:90px 1fr 80px 80px 80px 60px;
-  gap:6px;align-items:center;
-  padding:6px 8px;border-bottom:1px solid var(--border);
-  font-size:11px;
+  grid-template-columns:100px 1fr 100px 90px 100px 50px;
+  gap:8px;align-items:center;
+  padding:9px 12px;border-bottom:1px solid var(--border);
+  font-size:13px;
 }
 .karta-schedule-row.header{
   font-size:10px;color:var(--text3);text-transform:uppercase;
-  letter-spacing:.3px;font-weight:500;
-  position:sticky;top:0;background:var(--bg3);
+  letter-spacing:.3px;font-weight:600;
+  position:sticky;top:0;background:var(--bg3);padding:8px 12px;
 }
-.karta-schedule-row.current-month{background:rgba(245,166,35,.06)}
-.karta-schedule-row.paid{opacity:.45}
+.karta-schedule-row.current-month{background:rgba(245,166,35,.08)}
+.karta-schedule-row.paid{opacity:.4}
 
 /* EDIT BUTTON */
 .btn-edit{background:none;border:1px solid var(--border2);color:var(--text3);font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer;transition:all .15s}
@@ -429,10 +436,7 @@ th.col-franek{color:var(--green)}
 </head>
 <body>
 
-<div id="config-banner">
-  ⚡ Firebase niezskonfigurowany — wejdź w zakładkę Ustawienia i wklej config. Tryb offline aktywny.
-  <button class="btn-sm" onclick="document.getElementById('config-banner').classList.add('hidden')" style="margin-left:auto">✕</button>
-</div>
+<div id="config-banner" class="hidden" style="display:none!important"></div>
 
 <div id="login-wall">
   <div class="login-box">
@@ -1212,8 +1216,15 @@ const FIREBASE_CONFIG_KEY = 'ffh_firebase_config';
 let db=null, auth=null, currentUser=null, firebaseReady=false;
 
 function getFirebaseConfig(){
-  try{ const s=localStorage.getItem(FIREBASE_CONFIG_KEY); if(s) return JSON.parse(s); }catch(e){}
-  return null;
+  // Hardcoded config — mplace-finance project
+  return {
+    apiKey: "AIzaSyCXPjdSEXvvL4aY_o5SK8OWxrcn9SeldpI",
+    authDomain: "mplace-finance.firebaseapp.com",
+    projectId: "mplace-finance",
+    storageBucket: "mplace-finance.firebasestorage.app",
+    messagingSenderId: "132785149472",
+    appId: "1:132785149472:web:4c8aa1dc44055bc1160e45"
+  };
 }
 
 function initFirebase(){
@@ -1229,7 +1240,7 @@ function initFirebase(){
 }
 
 function initDemoMode(){
-  document.getElementById('login-error').textContent='Tryb offline — Firebase niezskonfigurowany. Skonfiguruj w Ustawieniach.';
+  // Config jest hardcoded — ten tryb nie powinien się uruchomić
   const btn=document.querySelector('.btn-google');
   btn.innerHTML='▶ Wejdź (tryb offline)';
   btn.style.background='#1e2333'; btn.style.color='#e8eaf0';
@@ -1621,15 +1632,15 @@ function renderHarmonogram(){
       const isPaid=splaty.some(s=>s.harmonogramIdx===ri);
       const isOverdue=!isPaid&&row.date<new Date().toISOString().split('T')[0];
       const rowCls=isPaid?'paid-row':isOverdue?'overdue-row':'';
-      return `<tr class="${rowCls}" style="font-size:11px">
-        <td class="mono" style="padding:6px 12px">${fmtDate(row.date)}</td>
-        <td style="padding:6px 12px">${p.borrower}</td>
-        <td class="right mono" style="padding:6px 12px">${fmt(row.brutto)}</td>
-        <td class="right mono" style="padding:6px 12px;color:var(--text3)">−${fmt(row.zus)}</td>
-        <td class="right mono" style="padding:6px 12px;color:var(--text3)">−${fmt(row.pit)}</td>
-        <td class="right mono" style="padding:6px 12px;color:var(--green);font-weight:600">${fmt(row.netto)}</td>
-        <td style="padding:6px 12px">${isPaid?'<span class="status plus">spłacono</span>':isOverdue?'<span class="status minus">przeterminowana</span>':'<span class="status zero">oczekuje</span>'}</td>
-        <td style="padding:6px 12px">
+      return `<tr class="${rowCls}" style="font-size:13px">
+        <td class="mono" style="padding:8px 12px;font-size:13px">${fmtDate(row.date)}</td>
+        <td style="padding:8px 12px">${p.borrower}</td>
+        <td class="right mono" style="padding:8px 12px;font-size:14px;font-weight:600">${fmt(row.brutto)}</td>
+        <td class="right mono" style="padding:8px 12px;color:var(--text3);font-size:12px">−${fmt(row.zus)}</td>
+        <td class="right mono" style="padding:8px 12px;color:var(--text3);font-size:12px">−${fmt(row.pit)}</td>
+        <td class="right mono" style="padding:8px 12px;color:var(--green);font-weight:700;font-size:14px">${fmt(row.netto)}</td>
+        <td style="padding:8px 12px">${isPaid?'<span class="status plus">spłacono</span>':isOverdue?'<span class="status minus">przeterminowana</span>':'<span class="status zero">oczekuje</span>'}</td>
+        <td style="padding:8px 12px">
           ${isPaid?'':'<button class="btn-sm" onclick="markHarmonogramPaid(\''+p.id+'\','+ri+')">✓ Zapłacono</button>'}
         </td>
       </tr>`;
@@ -1785,12 +1796,12 @@ function renderKarta(){
       const isCurrentMonth=r.month===todayMM;
       const isPaid=(k.splaty||[]).some(s=>s.month===r.month);
       return `<div class="karta-schedule-row ${isCurrentMonth?'current-month':''} ${isPaid?'paid':''}">
-        <span class="mono" style="color:${isCurrentMonth?'var(--yellow)':'var(--text3)'};font-weight:${isCurrentMonth?'600':'400'}">${r.dateLabel}</span>
-        <span style="color:var(--text3)">${isPaid?'✓ zapłacono':isCurrentMonth?'⬅ bieżący':r.balance<500?'ostatnia rata':''}</span>
-        <span class="mono right" style="color:var(--red)">${fmt(r.payment)}</span>
-        <span class="mono right" style="color:var(--text3);font-size:10px">+${fmt(r.interest)} odsetek</span>
-        <span class="mono right" style="color:var(--blue)">${fmt(r.balance)}</span>
-        <span>${isPaid?'':'<button class="btn-sm" style="font-size:9px" onclick="markKartaPaid(\''+k.id+'\',\''+r.month+'\','+r.payment+')">✓</button>'}</span>
+        <span class="mono" style="color:${isCurrentMonth?'var(--yellow)':'var(--text2)'};font-weight:${isCurrentMonth?'700':'400'};font-size:13px">${r.dateLabel}</span>
+        <span style="color:var(--text3);font-size:12px">${isPaid?'✓ zapłacono':isCurrentMonth?'⬅ bieżący':r.balance<500?'ostatnia rata':''}</span>
+        <span class="mono right" style="color:var(--red);font-size:14px;font-weight:600">${fmt(r.payment)}</span>
+        <span class="mono right" style="color:var(--text3);font-size:11px">+${fmt(r.interest)}</span>
+        <span class="mono right" style="color:var(--blue);font-size:14px;font-weight:600">${fmt(r.balance)}</span>
+        <span>${isPaid?'':'<button class="btn-sm" style="font-size:10px;padding:3px 7px" onclick="markKartaPaid(\''+k.id+'\',\''+r.month+'\','+r.payment+')">✓</button>'}</span>
       </div>`;
     }).join('');
 
@@ -2302,8 +2313,8 @@ function showSavePopup(items){
 let _editId = null;
 
 function openEditContractor(id){
-  const c=state.contractors.find(x=>x.id===id); if(!c) return;
-  _editId=id;
+  const c=state.contractors.find(x=>String(x.id)===String(id)); if(!c) return;
+  _editId=String(id);
   document.getElementById('ec-name').value=c.name;
   document.getElementById('ec-fee').value=c.fee;
   document.getElementById('ec-split-chris').value=c.splitChris;
@@ -2311,7 +2322,7 @@ function openEditContractor(id){
   openModal('modal-edit-contractor');
 }
 function saveEditContractor(){
-  const c=state.contractors.find(x=>x.id===_editId); if(!c) return;
+  const c=state.contractors.find(x=>String(x.id)===String(_editId)); if(!c) return;
   c.name=document.getElementById('ec-name').value.trim()||c.name;
   c.fee=parseFloat(document.getElementById('ec-fee').value)||c.fee;
   c.splitChris=parseFloat(document.getElementById('ec-split-chris').value)||c.splitChris;
@@ -2320,8 +2331,8 @@ function saveEditContractor(){
 }
 
 function openEditKosztStaly(id){
-  const k=state.kosztyStale.find(x=>x.id===id); if(!k) return;
-  _editId=id;
+  const k=state.kosztyStale.find(x=>String(x.id)===String(id)); if(!k) return;
+  _editId=String(id);
   document.getElementById('eks-name').value=k.name;
   document.getElementById('eks-kat').value=k.kat;
   document.getElementById('eks-kwota').value=k.kwota;
@@ -2330,7 +2341,7 @@ function openEditKosztStaly(id){
   openModal('modal-edit-koszt-staly');
 }
 function saveEditKosztStaly(){
-  const k=state.kosztyStale.find(x=>x.id===_editId); if(!k) return;
+  const k=state.kosztyStale.find(x=>String(x.id)===String(_editId)); if(!k) return;
   k.name=document.getElementById('eks-name').value.trim()||k.name;
   k.kat=document.getElementById('eks-kat').value;
   k.kwota=parseFloat(document.getElementById('eks-kwota').value)||k.kwota;
@@ -2340,8 +2351,8 @@ function saveEditKosztStaly(){
 }
 
 function openEditPozyczka(id){
-  const p=state.pozyczki.find(x=>x.id===id); if(!p) return;
-  _editId=id;
+  const p=state.pozyczki.find(x=>String(x.id)===String(id)); if(!p) return;
+  _editId=String(id);
   document.getElementById('ep-borrower').value=p.borrower;
   document.getElementById('ep-lender').value=p.lender;
   document.getElementById('ep-cel').value=p.cel||'';
@@ -2355,7 +2366,7 @@ function openEditPozyczka(id){
   openModal('modal-edit-pozyczka');
 }
 function saveEditPozyczka(){
-  const p=state.pozyczki.find(x=>x.id===_editId); if(!p) return;
+  const p=state.pozyczki.find(x=>String(x.id)===String(_editId)); if(!p) return;
   p.borrower=document.getElementById('ep-borrower').value;
   p.lender=document.getElementById('ep-lender').value;
   p.cel=document.getElementById('ep-cel').value.trim();
@@ -2371,8 +2382,8 @@ function saveEditPozyczka(){
 }
 
 function openEditKarta(id){
-  const k=state.karty.find(x=>x.id===id); if(!k) return;
-  _editId=id;
+  const k=state.karty.find(x=>String(x.id)===String(id)); if(!k) return;
+  _editId=String(id);
   document.getElementById('ek-name').value=k.name;
   document.getElementById('ek-owner').value=k.owner;
   document.getElementById('ek-saldo').value=k.saldo;
@@ -2383,7 +2394,7 @@ function openEditKarta(id){
   openModal('modal-edit-karta');
 }
 function saveEditKarta(){
-  const k=state.karty.find(x=>x.id===_editId); if(!k) return;
+  const k=state.karty.find(x=>String(x.id)===String(_editId)); if(!k) return;
   k.name=document.getElementById('ek-name').value.trim()||k.name;
   k.owner=document.getElementById('ek-owner').value;
   k.saldo=parseFloat(document.getElementById('ek-saldo').value)||k.saldo;
