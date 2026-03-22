@@ -14,41 +14,68 @@
 :root{
   --bg:#0f1117;--bg2:#181c26;--bg3:#1e2333;
   --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
-  --text:#e8eaf0;--text2:#8b91a8;--text3:#4a5068;
-  --accent:#ff6b35;
+  --text:#c4c7d4;--text2:#7a8098;--text3:#454a62;
+  --accent:#ff6b35;--accent2:#ff8c5a;
   --green:#2dd4a0;--green-bg:rgba(45,212,160,.07);--green-bd:rgba(45,212,160,.22);
   --red:#ff4d6a;--red-bg:rgba(255,77,106,.07);--red-bd:rgba(255,77,106,.22);
   --yellow:#f5a623;--yellow-bg:rgba(245,166,35,.07);--yellow-bd:rgba(245,166,35,.22);
   --blue:#4d9fff;--blue-bg:rgba(77,159,255,.07);--blue-bd:rgba(77,159,255,.22);
   --purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);--purple-bd:rgba(167,139,250,.22);
+  --mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
   --radius:10px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;position:relative}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;position:relative}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,107,53,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,53,.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
 body>*{position:relative;z-index:1}
 ::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:var(--bg2)}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-.mono{font-family:'DM Mono',monospace}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:3px}
+.mono{font-family:var(--mono)}
 
-/* TOPBAR */
-#topbar{position:sticky;top:0;z-index:100;background:rgba(15,17,23,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:12px;height:48px}
-.logo{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--accent);letter-spacing:.5px;white-space:nowrap;margin-right:8px}
-.nav-tabs{display:flex;gap:2px;flex:1;overflow-x:auto}
-.nav-tab{background:none;border:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;padding:4px 9px;border-radius:5px;cursor:pointer;letter-spacing:.3px;transition:all .15s;text-transform:uppercase;white-space:nowrap}
-.nav-tab:hover{color:var(--text);background:var(--bg3)}
-.nav-tab.active{color:var(--accent);background:rgba(255,107,53,.1)}
-.auth-bar{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:11px;color:var(--text2);white-space:nowrap}
+/* TOPBAR — Mplace style */
+#topbar{position:sticky;top:0;z-index:100;background:rgba(15,17,23,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0;display:flex;align-items:center;height:auto;min-height:44px;flex-wrap:wrap}
+.logo{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;padding:0 16px;height:44px;display:flex;align-items:center;border-right:1px solid var(--border2);margin-right:8px;flex-shrink:0}
+.logo span{color:var(--accent)}
+.nav-tabs{display:flex;gap:3px;flex:1;overflow-x:auto;padding:0 8px;height:44px;align-items:center}
+.nav-tabs::-webkit-scrollbar{height:2px}
+.nav-tab{font-family:var(--mono);font-size:10px;font-weight:400;padding:4px 9px;border-radius:5px;border:1px solid transparent;background:transparent;color:var(--text3);cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;line-height:1.4;letter-spacing:.05em}
+.nav-tab:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.nav-tab.active{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.nav-tab.t-orange{color:var(--accent);background:rgba(255,107,53,.08);border-color:rgba(255,107,53,.2)}
+.nav-tab.t-green{color:var(--green);background:rgba(45,212,160,.08);border-color:rgba(45,212,160,.2)}
+.nav-tab.t-blue{color:var(--blue);background:rgba(77,159,255,.08);border-color:rgba(77,159,255,.2)}
+.nav-tab.t-yellow{color:var(--yellow);background:rgba(245,166,35,.08);border-color:rgba(245,166,35,.2)}
+.nav-tab.t-red{color:var(--red);background:rgba(255,77,106,.08);border-color:rgba(255,77,106,.2)}
+.nav-sep-v{width:1px;height:16px;background:var(--border2);margin:0 4px;flex-shrink:0}
+.auth-bar{display:flex;align-items:center;gap:6px;padding:0 12px;font-size:11px;color:var(--text2);white-space:nowrap;height:44px}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);transition:background .3s;flex-shrink:0}
 .sync-dot.connected{background:var(--green)}
-.sync-dot.saving{background:var(--yellow);animation:pulse .6s infinite}
+.sync-dot.saving{background:var(--yellow);animation:mpulse .6s infinite}
 .sync-dot.error{background:var(--red)}
+@keyframes mpulse{0%,100%{opacity:1}50%{opacity:.3}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.auth-email{color:var(--text);font-weight:500}
-.btn-sm{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;padding:4px 9px;border-radius:5px;cursor:pointer;transition:all .15s;letter-spacing:.3px}
+.auth-email{color:var(--text);font-weight:500;font-size:11px}
+.btn-sm{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:var(--sans);font-size:10px;font-weight:500;padding:4px 9px;border-radius:5px;cursor:pointer;transition:all .15s;letter-spacing:.3px}
 .btn-sm:hover{color:var(--text);border-color:var(--text3)}
+
+/* DATE BAR — Mplace style */
+.entry-date-bar{display:flex;align-items:center;gap:1rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.75rem 1.1rem;margin-bottom:1rem;flex-wrap:wrap}
+.edb-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)}
+.edb-val{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--text)}
+.edb-day-wrap{display:flex;align-items:center;gap:.4rem;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:4px 10px}
+.edb-day-wrap label{font-size:11px;color:var(--text3)}
+.edb-day-num{color:var(--accent);font-family:var(--mono);font-size:14px;font-weight:500}
+.month-status{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid}
+.ms-active{background:rgba(45,212,160,.08);color:var(--green);border-color:var(--green-bd)}
+.ms-pulse{width:6px;height:6px;border-radius:50%;background:currentColor;animation:mpulse 2s infinite}
+.tl-bar{display:flex;align-items:center;gap:5px}
+.tl-dot{width:8px;height:8px;border-radius:50%}
+.tl-dot.has{background:var(--green)}
+.tl-dot.cur{background:var(--yellow);animation:mpulse 2s infinite}
+.tl-dot.none{background:var(--bg3);border:1px dashed var(--border2)}
+.tl-line{flex:1;height:1px;background:var(--border);min-width:10px}
 
 /* LOGIN WALL */
 #login-wall{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px}
@@ -451,13 +478,14 @@ th.col-franek{color:var(--green)}
 </div>
 
 <div id="topbar" style="display:none">
-  <div class="logo">FFH</div>
+  <div class="logo">Family <span>Finance</span></div>
   <nav class="nav-tabs">
-    <button class="nav-tab active" onclick="showSection('dashboard',this)">Dashboard</button>
-    <button class="nav-tab" onclick="showSection('biznes',this)">Biznes</button>
-    <button class="nav-tab" onclick="showSection('koszty',this)">Koszty</button>
-    <button class="nav-tab" onclick="showSection('pozyczki',this)">Pożyczki</button>
-    <button class="nav-tab" onclick="showSection('karta',this)">KARTA Biznes</button>
+    <button class="nav-tab t-orange active" onclick="showSection('dashboard',this)">Dashboard</button>
+    <button class="nav-tab t-blue" onclick="showSection('biznes',this)">Biznes</button>
+    <button class="nav-tab t-yellow" onclick="showSection('koszty',this)">Koszty</button>
+    <button class="nav-tab t-green" onclick="showSection('pozyczki',this)">Pożyczki</button>
+    <button class="nav-tab t-red" onclick="showSection('karta',this)">KARTA Biznes</button>
+    <div class="nav-sep-v"></div>
     <button class="nav-tab" onclick="showSection('ustawienia',this)">Ustawienia</button>
   </nav>
   <div class="auth-bar">
@@ -591,11 +619,33 @@ th.col-franek{color:var(--green)}
     </div>
   </div>
 
-  <div class="date-bar">
-    <span class="date-month" id="dbiz-month"></span>
-    <div class="date-progress-wrap"><div class="date-progress-fill" id="dbiz-fill"></div></div>
-    <span class="date-pct" id="dbiz-pct"></span>
-    <div class="date-dots" id="dbiz-dots"></div>
+  <div class="entry-date-bar" id="date-bar-biznes">
+    <div>
+      <div class="edb-lbl">Bieżący miesiąc</div>
+      <div style="display:flex;align-items:center;gap:.55rem;margin-top:2px">
+        <div class="edb-val" id="dbiz-month">—</div>
+        <span class="month-status ms-active"><span class="ms-pulse"></span><span id="dbiz-status">w toku</span></span>
+      </div>
+    </div>
+    <div class="nav-sep-v" style="height:26px"></div>
+    <div>
+      <div class="edb-lbl">Dzień miesiąca</div>
+      <div class="edb-day-wrap">
+        <label>dzień</label>
+        <span class="edb-day-num" id="dbiz-day">—</span>
+        <label id="dbiz-dayof">/31</label>
+      </div>
+    </div>
+    <div class="nav-sep-v" style="height:26px"></div>
+    <div>
+      <div class="edb-lbl">Postęp</div>
+      <div style="font-family:var(--mono);font-size:13px;font-weight:500;color:var(--accent)" id="dbiz-pct">—</div>
+    </div>
+    <div class="nav-sep-v" style="height:26px"></div>
+    <div>
+      <div class="edb-lbl">Historia</div>
+      <div class="tl-bar" id="dbiz-dots"></div>
+    </div>
   </div>
 
   <div class="toolbar">
@@ -1404,6 +1454,8 @@ const fmtN=n=>Number(n||0).toLocaleString('pl-PL',{maximumFractionDigits:0});
 const fmtDate=d=>{ if(!d) return '—'; const p=d.split('-'); return p[2]+'.'+p[1]+'.'+p[0].slice(2); };
 
 // ─── DATE BARS ────────────────────────────────────────────────────────────────
+const MONTHS_SHORT_ARR=['STY','LUT','MAR','KWI','MAJ','CZE','LIP','SIE','WRZ','PAŹ','LIS','GRU'];
+
 function updateDateBars(){
   const now=new Date();
   const isCur=(now.getMonth()===currentMonth&&now.getFullYear()===currentYear);
@@ -1411,14 +1463,55 @@ function updateDateBars(){
   const dayOfMonth=isCur?now.getDate():daysInMonth;
   const pct=Math.round((dayOfMonth/daysInMonth)*100);
   const ms=MONTHS[currentMonth]+' '+currentYear;
-  document.getElementById('dbiz-month').textContent=ms;
-  document.getElementById('dbiz-fill').style.width=pct+'%';
-  document.getElementById('dbiz-pct').textContent=pct+'%';
-  document.getElementById('biz-month-label').textContent=ms;
-  document.getElementById('koszty-month-label').textContent=ms;
-  document.getElementById('dash-date-label').textContent=ms;
+
+  // New Mplace date bar
+  const mEl=document.getElementById('dbiz-month');
+  if(mEl) mEl.textContent=ms;
+  const dayEl=document.getElementById('dbiz-day');
+  if(dayEl) dayEl.textContent=dayOfMonth;
+  const dayofEl=document.getElementById('dbiz-dayof');
+  if(dayofEl) dayofEl.textContent='/'+daysInMonth;
+  const pctEl=document.getElementById('dbiz-pct');
+  if(pctEl) pctEl.textContent=pct+'% (dzień '+dayOfMonth+'/'+daysInMonth+')';
+  const statusEl=document.getElementById('dbiz-status');
+  if(statusEl) statusEl.textContent=isCur?'w toku':'zamknięty';
+
+  // Timeline dots — last 6 months
   const dots=document.getElementById('dbiz-dots');
-  if(dots){ dots.innerHTML=''; for(let w=0;w<5;w++){ const d=document.createElement('div'); d.className='date-dot'+(Math.round((w/4)*daysInMonth)<dayOfMonth?' done':'')+(w===Math.round(pct/100*4)&&isCur?' today':''); dots.appendChild(d); } }
+  if(dots){
+    dots.innerHTML='';
+    for(let i=5;i>=0;i--){
+      let mi=currentMonth-i, yi=currentYear;
+      if(mi<0){mi+=12;yi--;}
+      const isCurDot=(i===0&&isCur);
+      const mk=`${yi}-${String(mi+1).padStart(2,'0')}`;
+      // Has data if any contractors or cash entries exist for that month
+      const hasCash=state.cash&&state.cash.some(c=>c.month===mk);
+      const hasData=hasCash||(i===0&&state.contractors&&state.contractors.length>0);
+
+      const dot=document.createElement('div');
+      dot.className='tl-dot '+(isCurDot?'cur':hasData?'has':'none');
+      dot.title=MONTHS[mi]+' '+yi;
+      dots.appendChild(dot);
+
+      const lbl=document.createElement('span');
+      lbl.style.cssText='font-family:var(--mono);font-size:8px;color:var(--text3);';
+      lbl.textContent=MONTHS_SHORT_ARR[mi];
+      dots.appendChild(lbl);
+
+      if(i>0){
+        const line=document.createElement('div');
+        line.className='tl-line';
+        dots.appendChild(line);
+      }
+    }
+  }
+
+  // Update month labels elsewhere
+  const ml=MONTHS[currentMonth]+' '+currentYear;
+  ['biz-month-label','koszty-month-label','dash-date-label'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent=ml;
+  });
 }
 
 function changeMonth(dir){
