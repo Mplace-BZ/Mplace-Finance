@@ -1,0 +1,2550 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Finance Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+:root{
+  --bg:#0f1117;--bg2:#181c26;--bg3:#1e2333;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --text:#e8eaf0;--text2:#8b91a8;--text3:#4a5068;
+  --accent:#ff6b35;
+  --green:#2dd4a0;--green-bg:rgba(45,212,160,.07);--green-bd:rgba(45,212,160,.22);
+  --red:#ff4d6a;--red-bg:rgba(255,77,106,.07);--red-bd:rgba(255,77,106,.22);
+  --yellow:#f5a623;--yellow-bg:rgba(245,166,35,.07);--yellow-bd:rgba(245,166,35,.22);
+  --blue:#4d9fff;--blue-bg:rgba(77,159,255,.07);--blue-bd:rgba(77,159,255,.22);
+  --purple:#a78bfa;--purple-bg:rgba(167,139,250,.07);--purple-bd:rgba(167,139,250,.22);
+  --radius:10px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;position:relative}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,107,53,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,53,.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+body>*{position:relative;z-index:1}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.mono{font-family:'DM Mono',monospace}
+
+/* TOPBAR */
+#topbar{position:sticky;top:0;z-index:100;background:rgba(15,17,23,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:12px;height:48px}
+.logo{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--accent);letter-spacing:.5px;white-space:nowrap;margin-right:8px}
+.nav-tabs{display:flex;gap:2px;flex:1;overflow-x:auto}
+.nav-tab{background:none;border:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;padding:4px 9px;border-radius:5px;cursor:pointer;letter-spacing:.3px;transition:all .15s;text-transform:uppercase;white-space:nowrap}
+.nav-tab:hover{color:var(--text);background:var(--bg3)}
+.nav-tab.active{color:var(--accent);background:rgba(255,107,53,.1)}
+.auth-bar{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:11px;color:var(--text2);white-space:nowrap}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);transition:background .3s;flex-shrink:0}
+.sync-dot.connected{background:var(--green)}
+.sync-dot.saving{background:var(--yellow);animation:pulse .6s infinite}
+.sync-dot.error{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.auth-email{color:var(--text);font-weight:500}
+.btn-sm{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;padding:4px 9px;border-radius:5px;cursor:pointer;transition:all .15s;letter-spacing:.3px}
+.btn-sm:hover{color:var(--text);border-color:var(--text3)}
+
+/* LOGIN WALL */
+#login-wall{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px}
+.login-box{background:var(--bg2);border:1px solid var(--border2);border-top:2px solid var(--accent);border-radius:var(--radius);padding:40px 48px;text-align:center;max-width:360px;width:90%}
+.login-logo{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:var(--accent);margin-bottom:6px}
+.login-sub{color:var(--text2);font-size:13px;margin-bottom:28px}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#333;border:none;border-radius:7px;padding:11px 20px;width:100%;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-google:hover{background:#f0f0f0}
+.btn-google svg{width:18px;height:18px}
+.login-error{color:var(--red);font-size:12px;margin-top:12px;min-height:16px}
+
+/* CONFIG BANNER */
+#config-banner{background:var(--yellow-bg);border-bottom:1px solid var(--yellow-bd);color:var(--yellow);font-size:12px;padding:8px 20px;display:flex;align-items:center;gap:8px}
+#config-banner.hidden{display:none}
+
+/* MAIN */
+#app-main{max-width:1200px;margin:0 auto;padding:20px 20px 60px;display:none}
+#app-main.visible{display:block}
+.section{display:none}
+.section.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* SECTION HEADER */
+.section-header{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.section-num{width:26px;height:26px;border-radius:50%;background:rgba(255,107,53,.12);border:1px solid rgba(255,107,53,.25);color:var(--accent);font-family:'DM Mono',monospace;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-title{font-size:15px;font-weight:600;color:var(--text)}
+
+/* DATE BAR */
+.date-bar{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:10px 16px;display:flex;align-items:center;gap:16px;margin-bottom:16px;font-size:12px;flex-wrap:wrap}
+.date-month{color:var(--text);font-weight:600;font-size:13px}
+.date-progress-wrap{flex:1;min-width:80px;max-width:200px;height:3px;background:var(--bg3);border-radius:2px}
+.date-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+.date-pct{color:var(--accent);font-family:'DM Mono',monospace;font-size:11px}
+.date-dots{display:flex;gap:4px;align-items:center}
+.date-dot{width:5px;height:5px;border-radius:50%;background:var(--bg3)}
+.date-dot.done{background:var(--accent)}
+.date-dot.today{background:var(--yellow);box-shadow:0 0 4px var(--yellow)}
+
+/* CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.card{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--border);border-radius:var(--radius);padding:16px;transition:border-color .2s}
+.card.c-green{border-top-color:var(--green)}
+.card.c-red{border-top-color:var(--red)}
+.card.c-yellow{border-top-color:var(--yellow)}
+.card.c-blue{border-top-color:var(--blue)}
+.card.c-accent{border-top-color:var(--accent)}
+.card.c-purple{border-top-color:var(--purple)}
+.card-label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px;font-weight:500;display:flex;align-items:center;gap:4px}
+.card-value{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;line-height:1.2}
+.card-value.c-green{color:var(--green)}
+.card-value.c-red{color:var(--red)}
+.card-value.c-yellow{color:var(--yellow)}
+.card-value.c-blue{color:var(--blue)}
+.card-value.c-accent{color:var(--accent)}
+.card-value.c-purple{color:var(--purple)}
+.card-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.card-trend{font-size:10px;margin-top:6px;font-family:'DM Mono',monospace}
+.trend-up{color:var(--green)}
+.trend-down{color:var(--red)}
+
+/* TABLES */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:20px}
+.data-tbl{width:100%;border-collapse:collapse}
+.data-tbl th{background:var(--bg3);color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:500;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.data-tbl th.right{text-align:right}
+.data-tbl td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text);vertical-align:middle}
+.data-tbl td.mono{font-family:'DM Mono',monospace;font-size:12px}
+.data-tbl td.right{text-align:right}
+.data-tbl tr:last-child td{border-bottom:none}
+.data-tbl tbody tr:hover{background:rgba(255,255,255,.02)}
+.data-tbl tr.tg td{color:var(--green)}
+.data-tbl tr.total td{font-weight:600;background:var(--bg3);border-top:1px solid var(--border2)}
+.data-tbl tr.subtotal td{font-weight:500;background:rgba(255,255,255,.02);font-size:11px;color:var(--text2)}
+.data-tbl tr.tax-row td{font-size:11px;color:var(--text3);font-style:italic}
+.data-tbl tr.zysk-row td{font-weight:600;color:var(--green);background:var(--green-bg)}
+.data-tbl tr.paid-row td{opacity:.5}
+.data-tbl tr.overdue-row td{background:var(--red-bg)}
+
+/* STATUS */
+.status{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;font-family:'DM Mono',monospace;white-space:nowrap}
+.status.plus{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.status.minus{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.status.zero{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-bd)}
+.status.info{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd)}
+.status.purple{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-bd)}
+
+/* ALERTS */
+.alerts{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.alert{display:flex;align-items:flex-start;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:10px 12px;font-size:12px}
+.alert.alert-red{border-left:3px solid var(--red)}
+.alert.alert-yellow{border-left:3px solid var(--yellow)}
+.alert.alert-green{border-left:3px solid var(--green)}
+.alert-icon{font-size:14px;margin-top:1px}
+.alert-text{color:var(--text2);line-height:1.4}
+.alert-text strong{color:var(--text)}
+
+/* TOOLTIPS */
+.tip-wrap{position:relative;display:inline-flex;align-items:center}
+.tip-btn{width:15px;height:15px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);color:var(--text3);font-size:9px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;cursor:help;margin-left:5px}
+.tip-popup{position:absolute;left:22px;top:-4px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:11px;color:var(--text2);z-index:50;opacity:0;pointer-events:none;transform:translateX(-4px);transition:all .15s;box-shadow:0 4px 16px rgba(0,0,0,.4);width:max-content;max-width:220px}
+.tip-wrap:hover .tip-popup{opacity:1;transform:translateX(0)}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-top:2px solid var(--accent);border-radius:var(--radius);padding:24px;width:90%;max-width:520px;transform:scale(.95);transition:transform .2s;max-height:90vh;overflow-y:auto}
+.modal-overlay.open .modal{transform:scale(1)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-title{font-size:14px;font-weight:600;color:var(--text)}
+.modal-close{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:4px}
+.modal-close:hover{color:var(--text);background:var(--bg3)}
+
+/* FORMS */
+.form-grid{display:grid;gap:12px}
+.form-grid.cols2{grid-template-columns:1fr 1fr}
+.form-grid.cols3{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+label{font-size:11px;color:var(--text2);font-weight:500;letter-spacing:.3px;text-transform:uppercase}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;outline:none;transition:border-color .15s;width:100%}
+input:focus,select:focus{border-color:var(--accent)}
+input[type=number]{font-family:'DM Mono',monospace}
+select option{background:var(--bg3)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;letter-spacing:.2px}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{background:#e55a25}
+.btn-secondary{background:var(--bg3);color:var(--text2);border-color:var(--border2)}
+.btn-secondary:hover{color:var(--text);border-color:var(--text3)}
+.btn-danger{background:var(--red-bg);color:var(--red);border-color:var(--red-bd)}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-green{background:var(--green-bg);color:var(--green);border-color:var(--green-bd)}
+.btn-green:hover{background:var(--green);color:#000}
+.btn-blue{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-bd)}
+.btn-blue:hover{background:var(--blue);color:#fff}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.toolbar-right{margin-left:auto;display:flex;gap:8px}
+
+/* INNER TABS */
+.inner-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0}
+.inner-tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:6px 12px;cursor:pointer;margin-bottom:-1px;transition:all .15s}
+.inner-tab:hover{color:var(--text)}
+.inner-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* MONTH SELECTOR */
+.month-selector{display:flex;align-items:center;gap:8px;margin-left:auto}
+.month-arrow{background:none;border:1px solid var(--border2);color:var(--text2);width:24px;height:24px;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s}
+.month-arrow:hover{color:var(--text);border-color:var(--text3)}
+.month-label{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);font-weight:500;min-width:90px;text-align:center}
+
+/* CHART BOX */
+.chart-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:20px}
+.chart-title{font-size:10px;color:var(--text3);margin-bottom:12px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+
+/* SPLIT BADGE */
+.split-badge{display:inline-flex;gap:3px;font-family:'DM Mono',monospace;font-size:10px}
+.sb-c{color:var(--blue)}
+.sb-f{color:var(--green)}
+.col-chris{color:var(--blue)}
+.col-franek{color:var(--green)}
+th.col-chris{color:var(--blue)}
+th.col-franek{color:var(--green)}
+
+/* PROGRESS BAR */
+.prog-wrap{background:var(--bg3);border-radius:3px;height:5px;overflow:hidden;width:100%}
+.prog-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.prog-green{background:var(--green)}
+.prog-yellow{background:var(--yellow)}
+.prog-red{background:var(--red)}
+.prog-blue{background:var(--blue)}
+
+/* SAVE POPUP */
+#save-popup{position:fixed;bottom:24px;right:24px;z-index:300;background:var(--bg3);border:1px solid var(--green-bd);border-radius:var(--radius);padding:12px 16px;font-size:12px;color:var(--green);min-width:200px;transform:translateY(80px);opacity:0;transition:all .25s;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+#save-popup.show{transform:translateY(0);opacity:1}
+#save-popup-list{color:var(--text2);font-size:11px;margin-top:4px}
+
+/* DIVIDER LABEL */
+.divider-label{text-align:center;position:relative;margin:16px 0;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3)}
+.divider-label::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);z-index:0}
+.divider-label span{background:var(--bg);padding:0 10px;position:relative;z-index:1}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px}
+.empty-icon{font-size:32px;margin-bottom:8px;opacity:.5}
+
+/* ═══ DASHBOARD FAJERWERKI ═══ */
+.dash-hero{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-bottom:20px;
+}
+.persona-card{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:20px;
+  position:relative;
+  overflow:hidden;
+}
+.persona-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+}
+.persona-card.pc-chris::before{background:linear-gradient(90deg,var(--blue),transparent)}
+.persona-card.pc-franek::before{background:linear-gradient(90deg,var(--green),transparent)}
+.persona-card-name{
+  font-size:11px;text-transform:uppercase;letter-spacing:1px;
+  color:var(--text3);font-weight:600;margin-bottom:12px;
+}
+.persona-card.pc-chris .persona-card-name{color:var(--blue)}
+.persona-card.pc-franek .persona-card-name{color:var(--green)}
+.persona-net{
+  font-family:'DM Mono',monospace;
+  font-size:28px;font-weight:500;
+  line-height:1;margin-bottom:4px;
+}
+.persona-card.pc-chris .persona-net{color:var(--blue)}
+.persona-card.pc-franek .persona-net{color:var(--green)}
+.persona-sub{font-size:11px;color:var(--text3);margin-bottom:14px}
+.persona-rows{display:flex;flex-direction:column;gap:7px}
+.persona-row{display:flex;justify-content:space-between;align-items:center;font-size:11px}
+.persona-row-label{color:var(--text2)}
+.persona-row-val{font-family:'DM Mono',monospace;font-weight:500}
+.persona-divider{height:1px;background:var(--border);margin:8px 0}
+.persona-bar-wrap{margin-top:10px}
+.persona-bar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px}
+
+.dash-charts-row{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px}
+.dash-timeline{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.dash-timeline-title{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:14px;font-weight:500}
+
+.upcoming-list{display:flex;flex-direction:column;gap:8px}
+.upcoming-item{
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg3);border-radius:7px;padding:9px 12px;
+  border-left:3px solid var(--border);
+}
+.upcoming-item.ui-red{border-left-color:var(--red)}
+.upcoming-item.ui-yellow{border-left-color:var(--yellow)}
+.upcoming-item.ui-blue{border-left-color:var(--blue)}
+.upcoming-item.ui-green{border-left-color:var(--green)}
+.upcoming-date{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);min-width:55px}
+.upcoming-desc{flex:1;font-size:12px;color:var(--text2)}
+.upcoming-desc strong{color:var(--text)}
+.upcoming-amount{font-family:'DM Mono',monospace;font-size:12px;font-weight:500}
+
+.health-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;
+  display:flex;flex-direction:column;align-items:center;
+}
+.health-title{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:14px;font-weight:500;align-self:flex-start}
+.health-ring{position:relative;width:110px;height:110px;margin-bottom:12px}
+.health-ring svg{transform:rotate(-90deg)}
+.health-ring-bg{stroke:var(--bg3);stroke-width:10;fill:none}
+.health-ring-fill{stroke-width:10;fill:none;stroke-linecap:round;transition:stroke-dashoffset .8s ease}
+.health-ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.health-score{font-family:'DM Mono',monospace;font-size:22px;font-weight:500}
+.health-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+
+/* HARMONOGRAM */
+.harm-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius);margin-bottom:12px;overflow:hidden;
+}
+.harm-header{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;cursor:pointer;
+  border-bottom:1px solid var(--border);
+  transition:background .15s;
+}
+.harm-header:hover{background:rgba(255,255,255,.02)}
+.harm-header-info{flex:1}
+.harm-header-name{font-size:13px;font-weight:600;color:var(--text)}
+.harm-header-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.harm-header-amount{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--yellow);white-space:nowrap}
+.harm-progress{padding:8px 16px 0}
+.harm-progress-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px}
+.harm-body{padding:0;display:none}
+.harm-body.open{display:block}
+.harm-actions{padding:12px 16px;display:flex;gap:8px;border-top:1px solid var(--border);background:var(--bg3)}
+
+/* KARTA BIZNES */
+.karta-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-left:4px solid var(--red);
+  border-radius:var(--radius);margin-bottom:16px;overflow:hidden;
+}
+.karta-header{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:16px;
+}
+.karta-title{font-size:13px;font-weight:600;color:var(--text)}
+.karta-owner{font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.karta-owner.chris{color:var(--blue)}
+.karta-owner.franek{color:var(--green)}
+.karta-owner.firma{color:var(--yellow)}
+.karta-saldo{text-align:right}
+.karta-saldo-amount{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--red)}
+.karta-saldo-sub{font-size:10px;color:var(--text3);margin-top:2px}
+.karta-meta{display:flex;gap:16px;padding:0 16px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.karta-meta-item{font-size:11px}
+.karta-meta-label{color:var(--text3);margin-right:4px}
+.karta-meta-val{font-family:'DM Mono',monospace;color:var(--text2)}
+.karta-plan{padding:16px}
+.karta-plan-title{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px;font-weight:500}
+.karta-input-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap}
+.karta-input-row .form-group{flex:1;min-width:120px}
+.karta-schedule{max-height:260px;overflow-y:auto}
+.karta-schedule-row{
+  display:grid;
+  grid-template-columns:90px 1fr 80px 80px 80px 60px;
+  gap:6px;align-items:center;
+  padding:6px 8px;border-bottom:1px solid var(--border);
+  font-size:11px;
+}
+.karta-schedule-row.header{
+  font-size:10px;color:var(--text3);text-transform:uppercase;
+  letter-spacing:.3px;font-weight:500;
+  position:sticky;top:0;background:var(--bg3);
+}
+.karta-schedule-row.current-month{background:rgba(245,166,35,.06)}
+.karta-schedule-row.paid{opacity:.45}
+
+/* EDIT BUTTON */
+.btn-edit{background:none;border:1px solid var(--border2);color:var(--text3);font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer;transition:all .15s}
+.btn-edit:hover{color:var(--blue);border-color:var(--blue-bd);background:var(--blue-bg)}
+
+/* HISTORIA MODAL */
+.historia-row{display:grid;grid-template-columns:100px 1fr 90px 90px 60px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.historia-row.header{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);font-weight:500;padding-bottom:6px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .dash-hero{grid-template-columns:1fr}
+  .dash-charts-row{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  #topbar{padding:0 12px;gap:6px;height:auto;min-height:48px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+  .logo{font-size:12px}
+  .nav-tabs{order:3;width:100%;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+  .nav-tabs::-webkit-scrollbar{height:2px}
+  .auth-bar{font-size:10px;gap:5px}
+  .auth-email{display:none}
+  #sync-label{display:none}
+  #app-main{padding:12px 10px 60px}
+  .cards-grid{grid-template-columns:1fr 1fr}
+  .form-grid.cols2,.form-grid.cols3{grid-template-columns:1fr}
+  .karta-schedule-row{grid-template-columns:70px 1fr 70px 60px 50px}
+  .persona-net{font-size:22px}
+  .historia-row{grid-template-columns:90px 1fr 80px 70px 40px;gap:4px;font-size:11px}
+  .modal{padding:16px}
+}
+
+/* PRINT STYLES */
+@media print{
+  #topbar,#config-banner,.toolbar,.btn,.btn-sm,.btn-edit,
+  .harm-actions,.inner-tabs,.nav-tabs,.auth-bar,
+  #save-popup,.modal-overlay{display:none!important}
+  body{background:#fff!important;color:#000!important}
+  body::before{display:none}
+  .section{display:block!important}
+  #app-main{padding:0;max-width:100%}
+  .card{border:1px solid #ddd!important;background:#fff!important;break-inside:avoid}
+  .cards-grid{gap:8px}
+  .data-tbl th{background:#f5f5f5!important;color:#333!important}
+  .data-tbl td{color:#000!important}
+  .persona-card{border:1px solid #ddd!important;background:#fff!important;break-inside:avoid}
+  .chart-box{border:1px solid #ddd!important;background:#fff!important}
+  .print-hide{display:none!important}
+  .print-only{display:block!important}
+  @page{margin:15mm;size:A4}
+}
+.print-only{display:none}
+</style>
+</head>
+<body>
+
+<div id="config-banner">
+  ⚡ Firebase niezskonfigurowany — wejdź w zakładkę Ustawienia i wklej config. Tryb offline aktywny.
+  <button class="btn-sm" onclick="document.getElementById('config-banner').classList.add('hidden')" style="margin-left:auto">✕</button>
+</div>
+
+<div id="login-wall">
+  <div class="login-box">
+    <div class="login-logo">FFH</div>
+    <div class="login-sub">Family Finance Hub</div>
+    <button class="btn-google" onclick="loginWithGoogle()">
+      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Zaloguj przez Google
+    </button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<div id="topbar" style="display:none">
+  <div class="logo">FFH</div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('dashboard',this)">Dashboard</button>
+    <button class="nav-tab" onclick="showSection('biznes',this)">Biznes</button>
+    <button class="nav-tab" onclick="showSection('koszty',this)">Koszty</button>
+    <button class="nav-tab" onclick="showSection('pozyczki',this)">Pożyczki</button>
+    <button class="nav-tab" onclick="showSection('karta',this)">KARTA Biznes</button>
+    <button class="nav-tab" onclick="showSection('ustawienia',this)">Ustawienia</button>
+  </nav>
+  <div class="auth-bar">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span id="sync-label" style="font-size:10px;color:var(--text3)">—</span>
+    <span class="auth-email" id="auth-email" style="max-width:130px;overflow:hidden;text-overflow:ellipsis"></span>
+    <button class="btn-sm" onclick="printReport()" title="Drukuj / eksport PDF">🖨</button>
+    <button class="btn-sm" onclick="backupJSON()">↓ Backup</button>
+    <button class="btn-sm" onclick="document.getElementById('import-file').click()">↑ Import</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
+    <button class="btn-sm" onclick="logout()">Wyloguj</button>
+  </div>
+</div>
+
+<div id="app-main">
+
+<!-- ① DASHBOARD -->
+<div class="section active" id="section-dashboard">
+  <div class="section-header">
+    <div class="section-num">①</div>
+    <div class="section-title">Dashboard</div>
+    <span style="font-size:11px;color:var(--text3);margin-left:auto" id="dash-date-label"></span>
+  </div>
+
+  <div id="dash-alerts" class="alerts"></div>
+
+  <!-- HERO: PERSONA CARDS -->
+  <div class="dash-hero">
+    <div class="persona-card pc-chris">
+      <div class="persona-card-name">Chris</div>
+      <div class="persona-net" id="dash-chris-net">0 zł</div>
+      <div class="persona-sub">cash flow msc (zysk netto − raty kart − raty pożyczek)</div>
+      <div class="persona-rows" id="dash-chris-rows"></div>
+      <div class="persona-bar-wrap">
+        <div class="persona-bar-label"><span>Przychód vs Obciążenia</span><span id="dash-chris-bar-pct">0%</span></div>
+        <div class="prog-wrap"><div class="prog-fill prog-blue" id="dash-chris-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="persona-card pc-franek">
+      <div class="persona-card-name">Franek</div>
+      <div class="persona-net" id="dash-franek-net">0 zł</div>
+      <div class="persona-sub">cash flow msc (zysk netto − raty kart − raty pożyczek)</div>
+      <div class="persona-rows" id="dash-franek-rows"></div>
+      <div class="persona-bar-wrap">
+        <div class="persona-bar-label"><span>Przychód vs Obciążenia</span><span id="dash-franek-bar-pct">0%</span></div>
+        <div class="prog-wrap"><div class="prog-fill prog-green" id="dash-franek-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI ROW -->
+  <div class="cards-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr))">
+    <div class="card c-accent">
+      <div class="card-label">Przychód brutto</div>
+      <div class="card-value c-accent mono" id="kpi-przychod">0 zł</div>
+      <div class="card-sub">wszystkie źródła</div>
+    </div>
+    <div class="card c-green">
+      <div class="card-label">Zysk firmy netto</div>
+      <div class="card-value c-green mono" id="kpi-zysk">0 zł</div>
+      <div class="card-sub">po ZUS i PIT</div>
+    </div>
+    <div class="card c-red">
+      <div class="card-label">Koszty firmy</div>
+      <div class="card-value c-red mono" id="kpi-koszty">0 zł</div>
+      <div class="card-sub">stałe + zmienne</div>
+    </div>
+    <div class="card c-yellow">
+      <div class="card-label">Pożyczki aktywne</div>
+      <div class="card-value c-yellow mono" id="kpi-pozyczki">0 zł</div>
+      <div class="card-sub" id="kpi-pozyczki-sub">0 aktywnych</div>
+    </div>
+    <div class="card c-red">
+      <div class="card-label">Karty kredytowe</div>
+      <div class="card-value c-red mono" id="kpi-karty">0 zł</div>
+      <div class="card-sub">łączne saldo</div>
+    </div>
+    <div class="card c-purple">
+      <div class="card-label">Marża netto</div>
+      <div class="card-value c-purple mono" id="kpi-marza">0%</div>
+      <div class="card-sub">zysk / przychód</div>
+    </div>
+  </div>
+
+  <!-- CHARTS + UPCOMING + HEALTH -->
+  <div class="dash-charts-row">
+    <div>
+      <div class="chart-box" style="margin-bottom:16px">
+        <div class="chart-title">Podział przychodów miesięcznych</div>
+        <canvas id="chart-bar" height="130"></canvas>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Trend 6 miesięcy — zysk netto</div>
+        <canvas id="chart-trend" height="100"></canvas>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="health-card">
+        <div class="health-title">Financial Health</div>
+        <div class="health-ring">
+          <svg width="110" height="110" viewBox="0 0 110 110">
+            <circle class="health-ring-bg" cx="55" cy="55" r="45"/>
+            <circle class="health-ring-fill" id="health-ring-fill" cx="55" cy="55" r="45" stroke="#2dd4a0" stroke-dasharray="283" stroke-dashoffset="283"/>
+          </svg>
+          <div class="health-ring-text">
+            <div class="health-score" id="health-score">—</div>
+            <div class="health-label" id="health-label">—</div>
+          </div>
+        </div>
+        <div id="health-factors" style="width:100%;font-size:11px;display:flex;flex-direction:column;gap:5px"></div>
+      </div>
+      <div class="dash-timeline">
+        <div class="dash-timeline-title">Najbliższe płatności</div>
+        <div class="upcoming-list" id="upcoming-list">
+          <div style="color:var(--text3);font-size:12px;text-align:center;padding:16px">Brak zaplanowanych płatności</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ② BIZNES -->
+<div class="section" id="section-biznes">
+  <div class="section-header">
+    <div class="section-num">②</div>
+    <div class="section-title">Biznes — Przychody</div>
+    <div class="month-selector">
+      <button class="month-arrow" onclick="changeMonth(-1)">‹</button>
+      <div class="month-label" id="biz-month-label"></div>
+      <button class="month-arrow" onclick="changeMonth(1)">›</button>
+    </div>
+  </div>
+
+  <div class="date-bar">
+    <span class="date-month" id="dbiz-month"></span>
+    <div class="date-progress-wrap"><div class="date-progress-fill" id="dbiz-fill"></div></div>
+    <span class="date-pct" id="dbiz-pct"></span>
+    <div class="date-dots" id="dbiz-dots"></div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="openModal('modal-add-contractor')">+ Kontrahent</button>
+    <button class="btn btn-secondary" onclick="openModal('modal-add-cash')">+ Cash/Projekt</button>
+    <div class="toolbar-right"><button class="btn btn-green" onclick="saveAll()">💾 Zapisz</button></div>
+  </div>
+
+  <div class="divider-label"><span>Allegro Fee / Stałe zlecenia</span></div>
+  <div class="table-wrap">
+    <table class="data-tbl">
+      <thead>
+        <tr>
+          <th>Kontrahent</th>
+          <th class="right">Fee brutto (msc)</th>
+          <th class="right">Split</th>
+          <th class="right col-chris">Chris brutto</th>
+          <th class="right col-franek">Franek brutto</th>
+          <th style="width:50px"></th>
+        </tr>
+      </thead>
+      <tbody id="tbl-contractors-body"></tbody>
+      <tfoot>
+        <tr class="total">
+          <td>Suma</td>
+          <td class="right mono" id="sum-fee">0 zł</td>
+          <td></td>
+          <td class="right mono col-chris" id="sum-chris-fee">0 zł</td>
+          <td class="right mono col-franek" id="sum-franek-fee">0 zł</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="divider-label"><span>Cash / Projekty jednorazowe</span></div>
+  <div class="table-wrap">
+    <table class="data-tbl">
+      <thead>
+        <tr>
+          <th>Projekt</th>
+          <th class="right">Kwota brutto</th>
+          <th class="right">Split</th>
+          <th class="right col-chris">Chris brutto</th>
+          <th class="right col-franek">Franek brutto</th>
+          <th style="width:50px"></th>
+        </tr>
+      </thead>
+      <tbody id="tbl-cash-body"></tbody>
+      <tfoot>
+        <tr class="total">
+          <td>Suma Cash</td>
+          <td class="right mono" id="sum-cash">0 zł</td>
+          <td></td>
+          <td class="right mono col-chris" id="sum-chris-cash">0 zł</td>
+          <td class="right mono col-franek" id="sum-franek-cash">0 zł</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="divider-label"><span>Podsumowanie — ZUS / PIT / Zysk Netto</span></div>
+  <div class="table-wrap">
+    <table class="data-tbl">
+      <thead>
+        <tr>
+          <th></th>
+          <th class="right">Łącznie</th>
+          <th class="right col-chris">Chris</th>
+          <th class="right col-franek">Franek</th>
+        </tr>
+      </thead>
+      <tbody id="tbl-summary-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ③ KOSZTY -->
+<div class="section" id="section-koszty">
+  <div class="section-header">
+    <div class="section-num">③</div>
+    <div class="section-title">Koszty firmy</div>
+    <div class="month-selector">
+      <button class="month-arrow" onclick="changeMonth(-1)">‹</button>
+      <div class="month-label" id="koszty-month-label"></div>
+      <button class="month-arrow" onclick="changeMonth(1)">›</button>
+    </div>
+  </div>
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="showInnerTab('koszty','stale',this)">Koszty stałe</button>
+    <button class="inner-tab" onclick="showInnerTab('koszty','zmienne',this)">Koszty zmienne</button>
+  </div>
+  <div id="koszty-stale">
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="openModal('modal-add-koszt-staly')">+ Koszt stały</button>
+      <div class="toolbar-right"><button class="btn btn-green" onclick="saveAll()">💾 Zapisz</button></div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-tbl">
+        <thead>
+          <tr>
+            <th>Nazwa</th><th>Kategoria</th><th class="right">Kwota</th>
+            <th class="right col-chris">Chris%</th><th class="right col-franek">Franek%</th>
+            <th class="right col-chris">Chris</th><th class="right col-franek">Franek</th>
+            <th style="width:50px"></th>
+          </tr>
+        </thead>
+        <tbody id="tbl-koszty-stale"></tbody>
+        <tfoot>
+          <tr class="total">
+            <td colspan="2">Suma stałe</td>
+            <td class="right mono" id="sum-kstale">0 zł</td>
+            <td colspan="2"></td>
+            <td class="right mono col-chris" id="sum-kstale-chris">0 zł</td>
+            <td class="right mono col-franek" id="sum-kstale-franek">0 zł</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+  <div id="koszty-zmienne" style="display:none">
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="openModal('modal-add-koszt-zmienny')">+ Koszt zmienny</button>
+      <div class="toolbar-right"><button class="btn btn-green" onclick="saveAll()">💾 Zapisz</button></div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-tbl">
+        <thead>
+          <tr>
+            <th>Nazwa</th><th>Data</th><th class="right">Razem</th>
+            <th class="right col-chris">Chris</th><th class="right col-franek">Franek</th>
+            <th style="width:50px"></th>
+          </tr>
+        </thead>
+        <tbody id="tbl-koszty-zmienne"></tbody>
+        <tfoot>
+          <tr class="total">
+            <td colspan="2">Suma zmienne</td>
+            <td class="right mono" id="sum-kzmienne">0 zł</td>
+            <td class="right mono col-chris" id="sum-kzmienne-chris">0 zł</td>
+            <td class="right mono col-franek" id="sum-kzmienne-franek">0 zł</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ④ POŻYCZKI -->
+<div class="section" id="section-pozyczki">
+  <div class="section-header">
+    <div class="section-num">④</div>
+    <div class="section-title">Pożyczki wewnętrzne</div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card c-yellow">
+      <div class="card-label">Do spłaty (aktywne)</div>
+      <div class="card-value c-yellow mono" id="poz-active-sum">0 zł</div>
+      <div class="card-sub" id="poz-active-count">brutto</div>
+    </div>
+    <div class="card c-green">
+      <div class="card-label">Do spłaty netto</div>
+      <div class="card-value c-green mono" id="poz-active-netto">0 zł</div>
+      <div class="card-sub">po ZUS i PIT</div>
+    </div>
+    <div class="card c-red">
+      <div class="card-label">Przeterminowane</div>
+      <div class="card-value c-red mono" id="poz-overdue-sum">0 zł</div>
+      <div class="card-sub" id="poz-overdue-count">—</div>
+    </div>
+    <div class="card c-blue">
+      <div class="card-label">Spłacono łącznie</div>
+      <div class="card-value c-blue mono" id="poz-paid-sum">0 zł</div>
+      <div class="card-sub">historia spłat (netto)</div>
+    </div>
+  </div>
+
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="showInnerTab('pozyczki','lista',this)">Lista pożyczek</button>
+    <button class="inner-tab" onclick="showInnerTab('pozyczki','harmonogram',this)">Harmonogram spłat</button>
+  </div>
+
+  <div id="pozyczki-lista">
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="openModal('modal-add-pozyczka')">+ Nowa pożyczka</button>
+      <div class="toolbar-right"><button class="btn btn-green" onclick="saveAll()">💾 Zapisz</button></div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-tbl">
+        <thead>
+          <tr>
+            <th>Pożyczkobiorca ← Dawca</th>
+            <th>Cel</th>
+            <th class="right">Brutto</th>
+            <th class="right">Netto</th>
+            <th class="right">Odsetki</th>
+            <th>Data</th>
+            <th>Termin</th>
+            <th>Status</th>
+            <th class="right" style="color:var(--yellow)">Rata msc</th>
+            <th class="right">Postęp</th>
+            <th style="width:80px"></th>
+          </tr>
+        </thead>
+        <tbody id="tbl-pozyczki"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="pozyczki-harmonogram" style="display:none">
+    <div style="margin-bottom:16px">
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px">
+        Kliknij pożyczkę aby rozwinąć harmonogram spłat. Kwoty <strong style="color:var(--text)">brutto</strong> to co jest zapisane — 
+        kwoty <strong style="color:var(--green)">netto</strong> to rzeczywista wypłata po ZUS i PIT pożyczkobiorcy.
+      </p>
+    </div>
+    <div id="harm-list"></div>
+    <div class="empty-state" id="harm-empty" style="display:none">
+      <div class="empty-icon">📅</div>
+      Brak pożyczek z harmonogramem. Dodaj pożyczkę i skonfiguruj harmonogram.
+    </div>
+  </div>
+</div>
+
+<!-- ⑤ KARTA BIZNES -->
+<div class="section" id="section-karta">
+  <div class="section-header">
+    <div class="section-num">⑤</div>
+    <div class="section-title">KARTA Biznes</div>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card c-red">
+      <div class="card-label">Łączne saldo kart</div>
+      <div class="card-value c-red mono" id="karta-total-saldo">0 zł</div>
+      <div class="card-sub">wszystkie karty</div>
+    </div>
+    <div class="card c-red">
+      <div class="card-label">Chris — saldo</div>
+      <div class="card-value c-red mono" id="karta-chris-saldo">0 zł</div>
+    </div>
+    <div class="card c-red">
+      <div class="card-label">Franek — saldo</div>
+      <div class="card-value c-red mono" id="karta-franek-saldo">0 zł</div>
+    </div>
+    <div class="card c-yellow">
+      <div class="card-label">Łączne odsetki (rok)</div>
+      <div class="card-value c-yellow mono" id="karta-total-interest">0 zł</div>
+      <div class="card-sub">przy min. ratach</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="openModal('modal-add-karta')">+ Dodaj kartę/dług</button>
+    <div class="toolbar-right"><button class="btn btn-green" onclick="saveAll()">💾 Zapisz</button></div>
+  </div>
+
+  <div id="karta-list"></div>
+  <div class="empty-state" id="karta-empty">
+    <div class="empty-icon">💳</div>
+    Brak kart kredytowych / długów. Dodaj pierwszą kartę.
+  </div>
+</div>
+
+<!-- ⑥ USTAWIENIA -->
+<div class="section" id="section-ustawienia">
+  <div class="section-header">
+    <div class="section-num">⑥</div>
+    <div class="section-title">Ustawienia</div>
+  </div>
+  <div class="chart-box">
+    <div class="chart-title">Firebase Config</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Wklej config z Firebase Console. Po zapisaniu strona przeładuje się i aktywuje sync.</p>
+    <div class="form-grid">
+      <div class="form-group"><label>API Key</label><input type="text" id="cfg-apiKey" placeholder="AIza..."></div>
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Auth Domain</label><input type="text" id="cfg-authDomain" placeholder="projekt.firebaseapp.com"></div>
+        <div class="form-group"><label>Project ID</label><input type="text" id="cfg-projectId"></div>
+      </div>
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Storage Bucket</label><input type="text" id="cfg-storageBucket"></div>
+        <div class="form-group"><label>Messaging Sender ID</label><input type="text" id="cfg-messagingSenderId"></div>
+      </div>
+      <div class="form-group"><label>App ID</label><input type="text" id="cfg-appId"></div>
+    </div>
+    <div class="divider-label" style="margin:16px 0"><span>ZUS i PIT (domyślne miesięczne)</span></div>
+    <div class="form-grid cols2">
+      <div class="form-group"><label>ZUS — Chris (zł)</label><input type="number" id="cfg-zus-chris" value="1289"></div>
+      <div class="form-group"><label>ZUS — Franek (zł)</label><input type="number" id="cfg-zus-franek" value="813"></div>
+      <div class="form-group"><label>PIT szacunek — Chris (zł)</label><input type="number" id="cfg-pit-chris" value="3154"></div>
+      <div class="form-group"><label>PIT szacunek — Franek (zł)</label><input type="number" id="cfg-pit-franek" value="1843"></div>
+    </div>
+    <br>
+    <button class="btn btn-primary" onclick="saveConfig()">Zapisz ustawienia</button>
+  </div>
+</div>
+
+</div><!-- /app-main -->
+
+<div id="save-popup">✓ Zapisano<div id="save-popup-list"></div></div>
+
+<!-- ═══ MODALS ═══ -->
+
+<div class="modal-overlay" id="modal-add-contractor">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Dodaj kontrahenta</div><button class="modal-close" onclick="closeModal('modal-add-contractor')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nazwa kontrahenta</label><input type="text" id="c-name" placeholder="np. AnkaDoo"></div>
+      <div class="form-group"><label>Fee netto miesięcznie (zł brutto)</label><input type="number" id="c-fee" placeholder="3500"></div>
+      <div class="form-group">
+        <label>Chris % <span style="color:var(--text3)">(Franek = reszta)</span></label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="c-split-chris" value="100" min="0" max="100" oninput="document.getElementById('c-fp').textContent=(100-this.value)+'% Franek'">
+          <span style="font-size:12px;color:var(--text3)">% Chris /</span>
+          <span id="c-fp" style="font-family:'DM Mono';color:var(--green);font-size:13px">0% Franek</span>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-contractor')">Anuluj</button>
+      <button class="btn btn-primary" onclick="addContractor()">Dodaj</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-cash">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Dodaj projekt Cash</div><button class="modal-close" onclick="closeModal('modal-add-cash')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nazwa</label><input type="text" id="cash-name"></div>
+      <div class="form-group"><label>Kwota brutto (zł)</label><input type="number" id="cash-kwota"></div>
+      <div class="form-group">
+        <label>Chris %</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="cash-split-chris" value="50" min="0" max="100" oninput="document.getElementById('cash-fp').textContent=(100-this.value)+'%'">
+          <span style="font-size:12px;color:var(--text3)">% Chris /</span>
+          <span id="cash-fp" style="font-family:'DM Mono';color:var(--green);font-size:13px">50%</span>
+          <span style="font-size:12px;color:var(--text3)">Franek</span>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-cash')">Anuluj</button>
+      <button class="btn btn-primary" onclick="addCash()">Dodaj</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-koszt-staly">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Koszt stały</div><button class="modal-close" onclick="closeModal('modal-add-koszt-staly')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nazwa</label><input type="text" id="ks-name"></div>
+      <div class="form-group"><label>Kategoria</label><select id="ks-kat"><option value="allegro">Allegro</option><option value="it">IT</option><option value="biuro">Biuro</option><option value="inne">Inne</option></select></div>
+      <div class="form-group"><label>Kwota (zł)</label><input type="number" id="ks-kwota"></div>
+      <div class="form-group">
+        <label>Chris %</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="ks-split" value="50" min="0" max="100" oninput="document.getElementById('ks-fp').textContent=(100-this.value)+'%'">
+          <span style="color:var(--text3);font-size:12px">% Chris /</span>
+          <span id="ks-fp" style="color:var(--green);font-family:'DM Mono'">50%</span>
+          <span style="color:var(--text3);font-size:12px">Franek</span>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-koszt-staly')">Anuluj</button>
+      <button class="btn btn-primary" onclick="addKosztStaly()">Dodaj</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-koszt-zmienny">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Koszt zmienny</div><button class="modal-close" onclick="closeModal('modal-add-koszt-zmienny')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nazwa</label><input type="text" id="kz-name"></div>
+      <div class="form-group"><label>Data</label><input type="date" id="kz-data"></div>
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Kwota Chris (zł)</label><input type="number" id="kz-chris" value="0"></div>
+        <div class="form-group"><label>Kwota Franek (zł)</label><input type="number" id="kz-franek" value="0"></div>
+      </div>
+    </div>
+    <br>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-koszt-zmienny')">Anuluj</button>
+      <button class="btn btn-primary" onclick="addKosztZmienny()">Dodaj</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-pozyczka">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Nowa pożyczka</div><button class="modal-close" onclick="closeModal('modal-add-pozyczka')">×</button></div>
+    <div class="form-grid">
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Pożyczkobiorca</label><select id="poz-borrower"><option value="Chris">Chris</option><option value="Franek">Franek</option><option value="Firma">Firma</option></select></div>
+        <div class="form-group"><label>Pożyczkodawca</label><select id="poz-lender"><option value="Franek">Franek</option><option value="Chris">Chris</option><option value="Firma">Firma</option></select></div>
+      </div>
+      <div class="form-group"><label>Cel / Opis</label><input type="text" id="poz-cel" placeholder="np. zakup towaru, zaliczka"></div>
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Kwota brutto (zł)</label><input type="number" id="poz-kwota"></div>
+        <div class="form-group"><label>Odsetki % rocznie (0=brak)</label><input type="number" id="poz-odsetki" value="0"></div>
+      </div>
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Data udzielenia</label><input type="date" id="poz-data"></div>
+        <div class="form-group"><label>Termin spłaty</label><input type="date" id="poz-termin"></div>
+      </div>
+      <div class="form-group"><label>Typ spłaty</label><select id="poz-typ"><option value="jednorazowo">Jednorazowo</option><option value="raty">Raty miesięczne</option></select></div>
+      <div id="poz-raty-field" style="display:none">
+        <div class="form-group"><label>Miesięczna rata brutto (zł)</label><input type="number" id="poz-rata" placeholder="np. 2000"></div>
+      </div>
+    </div>
+    <br>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-pozyczka')">Anuluj</button>
+      <button class="btn btn-primary" onclick="addPozyczka()">Dodaj</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-karta">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Dodaj kartę / dług</div><button class="modal-close" onclick="closeModal('modal-add-karta')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nazwa (np. Karta Visa mBank)</label><input type="text" id="k-name"></div>
+      <div class="form-group"><label>Właściciel</label><select id="k-owner"><option value="Chris">Chris</option><option value="Franek">Franek</option><option value="Firma">Firma (wspólny)</option></select></div>
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Aktualne saldo (zł brutto)</label><input type="number" id="k-saldo"></div>
+        <div class="form-group"><label>Oprocentowanie % rocznie</label><input type="number" id="k-rate" value="20"></div>
+      </div>
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Minimalna rata miesięczna (zł)</label><input type="number" id="k-min-rata" value="500"></div>
+        <div class="form-group"><label>Planowana rata (zł/msc)</label><input type="number" id="k-plan-rata" value="1000" placeholder="ile chcesz płacić"></div>
+      </div>
+      <div class="form-group"><label>Dzień spłaty (dzień miesiąca)</label><input type="number" id="k-dzien" value="15" min="1" max="28"></div>
+    </div>
+    <br>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-karta')">Anuluj</button>
+      <button class="btn btn-primary" onclick="addKarta()">Dodaj</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SPŁATA RATY -->
+<div class="modal-overlay" id="modal-splata">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="modal-splata-title">Zarejestruj spłatę</div><button class="modal-close" onclick="closeModal('modal-splata')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Kwota brutto (zł)</label><input type="number" id="splata-kwota"></div>
+      <div class="form-group"><label>Data spłaty</label><input type="date" id="splata-data"></div>
+      <div id="splata-netto-preview" style="background:var(--green-bg);border:1px solid var(--green-bd);border-radius:6px;padding:10px;font-size:12px;color:var(--green);display:none">
+        Kwota netto (po ZUS/PIT): <span id="splata-netto-val" style="font-family:'DM Mono';font-weight:600"></span>
+      </div>
+    </div>
+    <br>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-splata')">Anuluj</button>
+      <button class="btn btn-primary" id="modal-splata-btn">Zarejestruj</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: HISTORIA SPŁAT -->
+<div class="modal-overlay" id="modal-historia">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-header">
+      <div class="modal-title" id="historia-title">Historia spłat</div>
+      <button class="modal-close" onclick="closeModal('modal-historia')">×</button>
+    </div>
+    <div style="margin-bottom:12px;display:flex;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;background:var(--bg3);border-radius:7px;padding:10px 14px">
+        <div style="font-size:10px;text-transform:uppercase;color:var(--text3);letter-spacing:.4px;margin-bottom:3px">Spłacono brutto</div>
+        <div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--yellow)" id="hist-sum-brutto">—</div>
+      </div>
+      <div style="flex:1;background:var(--bg3);border-radius:7px;padding:10px 14px">
+        <div style="font-size:10px;text-transform:uppercase;color:var(--text3);letter-spacing:.4px;margin-bottom:3px">Wypłacono netto</div>
+        <div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--green)" id="hist-sum-netto">—</div>
+      </div>
+      <div style="flex:1;background:var(--bg3);border-radius:7px;padding:10px 14px">
+        <div style="font-size:10px;text-transform:uppercase;color:var(--text3);letter-spacing:.4px;margin-bottom:3px">Pozostało brutto</div>
+        <div style="font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--red)" id="hist-pozostalo">—</div>
+      </div>
+    </div>
+    <div class="historia-row header">
+      <span>Data</span><span>Typ</span><span class="right">Brutto</span><span class="right" style="color:var(--green)">Netto</span><span></span>
+    </div>
+    <div id="historia-body" style="max-height:320px;overflow-y:auto"></div>
+    <div style="margin-top:12px;display:flex;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-historia')">Zamknij</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDYCJA KONTRAHENTA -->
+<div class="modal-overlay" id="modal-edit-contractor">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Edytuj kontrahenta</div><button class="modal-close" onclick="closeModal('modal-edit-contractor')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nazwa kontrahenta</label><input type="text" id="ec-name"></div>
+      <div class="form-group"><label>Fee brutto miesięcznie (zł)</label><input type="number" id="ec-fee"></div>
+      <div class="form-group">
+        <label>Chris %</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="ec-split-chris" min="0" max="100" oninput="document.getElementById('ec-fp').textContent=(100-this.value)+'% Franek'">
+          <span style="font-size:12px;color:var(--text3)">% Chris /</span>
+          <span id="ec-fp" style="font-family:'DM Mono';color:var(--green);font-size:13px">—</span>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-contractor')">Anuluj</button>
+      <button class="btn btn-primary" onclick="saveEditContractor()">Zapisz zmiany</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDYCJA KOSZTU STAŁEGO -->
+<div class="modal-overlay" id="modal-edit-koszt-staly">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Edytuj koszt stały</div><button class="modal-close" onclick="closeModal('modal-edit-koszt-staly')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nazwa</label><input type="text" id="eks-name"></div>
+      <div class="form-group"><label>Kategoria</label><select id="eks-kat"><option value="allegro">Allegro</option><option value="it">IT</option><option value="biuro">Biuro</option><option value="inne">Inne</option></select></div>
+      <div class="form-group"><label>Kwota (zł)</label><input type="number" id="eks-kwota"></div>
+      <div class="form-group">
+        <label>Chris %</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="eks-split" min="0" max="100" oninput="document.getElementById('eks-fp').textContent=(100-this.value)+'%'">
+          <span style="color:var(--text3);font-size:12px">% Chris /</span>
+          <span id="eks-fp" style="color:var(--green);font-family:'DM Mono'">—</span>
+          <span style="color:var(--text3);font-size:12px">Franek</span>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-koszt-staly')">Anuluj</button>
+      <button class="btn btn-primary" onclick="saveEditKosztStaly()">Zapisz zmiany</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDYCJA POŻYCZKI -->
+<div class="modal-overlay" id="modal-edit-pozyczka">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Edytuj pożyczkę</div><button class="modal-close" onclick="closeModal('modal-edit-pozyczka')">×</button></div>
+    <div class="form-grid">
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Pożyczkobiorca</label><select id="ep-borrower"><option value="Chris">Chris</option><option value="Franek">Franek</option><option value="Firma">Firma</option></select></div>
+        <div class="form-group"><label>Pożyczkodawca</label><select id="ep-lender"><option value="Franek">Franek</option><option value="Chris">Chris</option><option value="Firma">Firma</option></select></div>
+      </div>
+      <div class="form-group"><label>Cel</label><input type="text" id="ep-cel"></div>
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Kwota brutto</label><input type="number" id="ep-kwota"></div>
+        <div class="form-group"><label>Odsetki % rocznie</label><input type="number" id="ep-odsetki"></div>
+      </div>
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Data udzielenia</label><input type="date" id="ep-data"></div>
+        <div class="form-group"><label>Termin spłaty</label><input type="date" id="ep-termin"></div>
+      </div>
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Typ spłaty</label><select id="ep-typ"><option value="jednorazowo">Jednorazowo</option><option value="raty">Raty miesięczne</option></select></div>
+        <div class="form-group"><label>Rata msc brutto (zł)</label><input type="number" id="ep-rata" placeholder="0"></div>
+      </div>
+      <div class="form-group"><label>Zadeklarowana rata msc do dashboard (zł)</label><input type="number" id="ep-rataMsc" placeholder="0"></div>
+    </div>
+    <br>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-pozyczka')">Anuluj</button>
+      <button class="btn btn-primary" onclick="saveEditPozyczka()">Zapisz zmiany</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EDYCJA KARTY -->
+<div class="modal-overlay" id="modal-edit-karta">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Edytuj kartę / dług</div><button class="modal-close" onclick="closeModal('modal-edit-karta')">×</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nazwa</label><input type="text" id="ek-name"></div>
+      <div class="form-group"><label>Właściciel</label><select id="ek-owner"><option value="Chris">Chris</option><option value="Franek">Franek</option><option value="Firma">Firma</option></select></div>
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Aktualne saldo (zł)</label><input type="number" id="ek-saldo"></div>
+        <div class="form-group"><label>Oprocentowanie % rocznie</label><input type="number" id="ek-rate"></div>
+      </div>
+      <div class="form-grid cols2">
+        <div class="form-group"><label>Minimalna rata (zł)</label><input type="number" id="ek-min-rata"></div>
+        <div class="form-group"><label>Planowana rata (zł)</label><input type="number" id="ek-plan-rata"></div>
+      </div>
+      <div class="form-group"><label>Dzień spłaty (1–28)</label><input type="number" id="ek-dzien" min="1" max="28"></div>
+    </div>
+    <br>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-karta')">Anuluj</button>
+      <button class="btn btn-primary" onclick="saveEditKarta()">Zapisz zmiany</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('poz-typ').addEventListener('change', function(){
+  document.getElementById('poz-raty-field').style.display = this.value==='raty' ? '' : 'none';
+});
+document.getElementById('splata-kwota').addEventListener('input', previewSplataNetto);
+
+// ─── FIREBASE ────────────────────────────────────────────────────────────────
+const FIREBASE_CONFIG_KEY = 'ffh_firebase_config';
+let db=null, auth=null, currentUser=null, firebaseReady=false;
+
+function getFirebaseConfig(){
+  try{ const s=localStorage.getItem(FIREBASE_CONFIG_KEY); if(s) return JSON.parse(s); }catch(e){}
+  return null;
+}
+
+function initFirebase(){
+  const cfg=getFirebaseConfig();
+  if(!cfg||!cfg.apiKey){ initDemoMode(); return; }
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(cfg);
+    auth=firebase.auth(); db=firebase.firestore();
+    firebaseReady=true;
+    document.getElementById('config-banner').classList.add('hidden');
+    setupAuth();
+  }catch(e){ console.error(e); initDemoMode(); }
+}
+
+function initDemoMode(){
+  document.getElementById('login-error').textContent='Tryb offline — Firebase niezskonfigurowany. Skonfiguruj w Ustawieniach.';
+  const btn=document.querySelector('.btn-google');
+  btn.innerHTML='▶ Wejdź (tryb offline)';
+  btn.style.background='#1e2333'; btn.style.color='#e8eaf0';
+  btn.onclick=demoLogin;
+}
+
+function demoLogin(){ currentUser={uid:'demo',email:'demo@local'}; afterLogin(); }
+
+function setupAuth(){
+  auth.onAuthStateChanged(u=>{ if(u){ currentUser=u; afterLogin(); } else showLoginWall(); });
+}
+
+async function loginWithGoogle(){
+  if(!firebaseReady){ demoLogin(); return; }
+  try{
+    const p=new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(p);
+  }catch(e){ document.getElementById('login-error').textContent=e.message; }
+}
+
+async function logout(){
+  if(firebaseReady&&auth) await auth.signOut();
+  currentUser=null; showLoginWall();
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const LS={
+  get:k=>{try{return JSON.parse(localStorage.getItem('ffh_'+k));}catch(e){return null;}},
+  set:(k,v)=>localStorage.setItem('ffh_'+k,JSON.stringify(v))
+};
+
+let state={
+  contractors:[],  // {id,name,fee,splitChris}
+  cash:[],         // {id,name,kwota,splitChris,month}
+  kosztyStale:[],  // {id,name,kat,kwota,splitChris}
+  kosztyZmienne:[],// {id,name,data,chris,franek,month}
+  pozyczki:[],     // {id,borrower,lender,cel,kwota,odsetki,data,termin,typ,rata,status,splaty:[{id,data,kwota,kwotaNetto}]}
+  karty:[],        // {id,name,owner,saldo,rate,minRata,planRata,dzien,splaty:[{id,data,kwota}]}
+  config:{zusChris:1289,zusFranek:813,pitChris:3154,pitFranek:1843}
+};
+
+let currentMonth=new Date().getMonth(), currentYear=new Date().getFullYear();
+const MONTHS=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+
+function getMK(){ return `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`; }
+
+// brutto→netto dla osoby
+function netto(brutto, osoba){
+  const zus = osoba==='Chris' ? state.config.zusChris : state.config.zusFranek;
+  const pit = osoba==='Chris' ? state.config.pitChris : state.config.pitFranek;
+  // ZUS i PIT są miesięcznymi kwotami stałymi, nie procentami od tej konkretnej kwoty
+  // Dla pożyczek/rozliczeń stosujemy efektywny % obciążeń od miesięcznego przychodu
+  // Wyliczamy efektywną stawkę na podstawie typowego miesiąca
+  const typBrutto = osoba==='Chris' ? 16600 : 9700; // przykładowe z tabelki
+  const efRata = Math.min((zus+pit)/typBrutto, 0.4); // max 40%
+  return Math.round(brutto * (1 - efRata));
+}
+
+// ─── LOAD / SAVE ─────────────────────────────────────────────────────────────
+function loadFromLS(){
+  state.contractors=LS.get('contractors')||[];
+  state.cash=LS.get('cash')||[];
+  state.kosztyStale=LS.get('kosztyStale')||[];
+  state.kosztyZmienne=LS.get('kosztyZmienne')||[];
+  state.pozyczki=LS.get('pozyczki')||[];
+  state.karty=LS.get('karty')||[];
+  const cfg=LS.get('config'); if(cfg) state.config={...state.config,...cfg};
+}
+
+async function loadFromFirebase(){
+  if(!firebaseReady||!db||!currentUser) return;
+  setSyncStatus('saving');
+  try{
+    const snap=await db.collection('users').doc(currentUser.uid).get();
+    if(snap.exists){
+      const d=snap.data();
+      ['contractors','cash','kosztyStale','kosztyZmienne','pozyczki','karty','config'].forEach(k=>{
+        if(d[k]) state[k]= k==='config' ? {...state.config,...d[k]} : d[k];
+      });
+      Object.keys(state).forEach(k=>LS.set(k,state[k]));
+    }
+    setSyncStatus('connected');
+  }catch(e){ console.error(e); setSyncStatus('error'); }
+}
+
+async function saveAll(){
+  Object.keys(state).forEach(k=>LS.set(k,state[k]));
+  setSyncStatus('saving');
+  const saved=['localStorage ✓'];
+  if(firebaseReady&&db&&currentUser){
+    try{
+      await db.collection('users').doc(currentUser.uid).set(state,{merge:true});
+      setSyncStatus('connected'); saved.push('Firebase ☁ ✓');
+    }catch(e){ setSyncStatus('error'); saved.push('Firebase ✗'); }
+  } else setSyncStatus('connected');
+  showSavePopup(saved);
+}
+
+// ─── UI HELPERS ──────────────────────────────────────────────────────────────
+function setSyncStatus(s){
+  const dot=document.getElementById('sync-dot'), lbl=document.getElementById('sync-label');
+  dot.className='sync-dot '+s;
+  lbl.textContent={connected:'☁ Połączono',saving:'⟳ Zapis...',error:'✗ Błąd','':'—'}[s]||'';
+}
+
+function showLoginWall(){
+  document.getElementById('login-wall').style.display='flex';
+  document.getElementById('topbar').style.display='none';
+  document.getElementById('app-main').style.display='none';
+}
+
+function afterLogin(){
+  document.getElementById('login-wall').style.display='none';
+  document.getElementById('topbar').style.display='flex';
+  document.getElementById('app-main').style.display='block';
+  document.getElementById('auth-email').textContent=currentUser.email;
+  loadFromLS();
+  loadFromFirebase().then(()=>renderAll());
+  renderAll();
+  initCharts();
+}
+
+function showSection(name, btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('section-'+name).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(name==='dashboard') renderDashboard();
+  if(name==='biznes') renderBiznes();
+  if(name==='koszty') renderKoszty();
+  if(name==='pozyczki') renderPozyczki();
+  if(name==='karta') renderKarta();
+  updateDateBars();
+}
+
+function showInnerTab(section, tab, btn){
+  const sEl=document.getElementById('section-'+section);
+  sEl.querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(section==='koszty'){
+    document.getElementById('koszty-stale').style.display=tab==='stale'?'':'none';
+    document.getElementById('koszty-zmienne').style.display=tab==='zmienne'?'':'none';
+  }
+  if(section==='pozyczki'){
+    document.getElementById('pozyczki-lista').style.display=tab==='lista'?'':'none';
+    document.getElementById('pozyczki-harmonogram').style.display=tab==='harmonogram'?'':'none';
+    if(tab==='harmonogram') renderHarmonogram();
+  }
+}
+
+function openModal(id){
+  const today=new Date().toISOString().split('T')[0];
+  document.querySelectorAll('#'+id+' input[type=date]').forEach(d=>{if(!d.value)d.value=today;});
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+const fmt=n=>Number(n||0).toLocaleString('pl-PL',{maximumFractionDigits:0})+' zł';
+const fmtN=n=>Number(n||0).toLocaleString('pl-PL',{maximumFractionDigits:0});
+const fmtDate=d=>{ if(!d) return '—'; const p=d.split('-'); return p[2]+'.'+p[1]+'.'+p[0].slice(2); };
+
+// ─── DATE BARS ────────────────────────────────────────────────────────────────
+function updateDateBars(){
+  const now=new Date();
+  const isCur=(now.getMonth()===currentMonth&&now.getFullYear()===currentYear);
+  const daysInMonth=new Date(currentYear,currentMonth+1,0).getDate();
+  const dayOfMonth=isCur?now.getDate():daysInMonth;
+  const pct=Math.round((dayOfMonth/daysInMonth)*100);
+  const ms=MONTHS[currentMonth]+' '+currentYear;
+  document.getElementById('dbiz-month').textContent=ms;
+  document.getElementById('dbiz-fill').style.width=pct+'%';
+  document.getElementById('dbiz-pct').textContent=pct+'%';
+  document.getElementById('biz-month-label').textContent=ms;
+  document.getElementById('koszty-month-label').textContent=ms;
+  document.getElementById('dash-date-label').textContent=ms;
+  const dots=document.getElementById('dbiz-dots');
+  if(dots){ dots.innerHTML=''; for(let w=0;w<5;w++){ const d=document.createElement('div'); d.className='date-dot'+(Math.round((w/4)*daysInMonth)<dayOfMonth?' done':'')+(w===Math.round(pct/100*4)&&isCur?' today':''); dots.appendChild(d); } }
+}
+
+function changeMonth(dir){
+  currentMonth+=dir;
+  if(currentMonth>11){currentMonth=0;currentYear++;}
+  if(currentMonth<0){currentMonth=11;currentYear--;}
+  updateDateBars();
+  renderAll();
+}
+
+// ─── RENDER ALL ───────────────────────────────────────────────────────────────
+function renderAll(){
+  updateDateBars();
+  renderDashboard();
+  renderBiznes();
+  renderKoszty();
+  renderPozyczki();
+  renderKarta();
+  loadConfigUI();
+}
+
+// ─── BIZNES ──────────────────────────────────────────────────────────────────
+function calcBiznes(){
+  const mk=getMK();
+  let sumFee=0,cFee=0,fFee=0;
+  state.contractors.forEach(c=>{const ch=Math.round(c.fee*c.splitChris/100);sumFee+=c.fee;cFee+=ch;fFee+=(c.fee-ch);});
+  let sumCash=0,cCash=0,fCash=0;
+  state.cash.filter(c=>c.month===mk).forEach(c=>{const ch=Math.round(c.kwota*c.splitChris/100);sumCash+=c.kwota;cCash+=ch;fCash+=(c.kwota-ch);});
+  return {sumFee,cFee,fFee,sumCash,cCash,fCash,
+    totalC:cFee+cCash, totalF:fFee+fCash,
+    get total(){return this.totalC+this.totalF;}
+  };
+}
+
+function renderBiznes(){
+  const mk=getMK();
+  const tbody=document.getElementById('tbl-contractors-body');
+  let sF=0,sC=0,sFr=0;
+  if(!state.contractors.length){
+    tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📋</div>Brak kontrahentów</div></td></tr>';
+  } else {
+    tbody.innerHTML=state.contractors.map((c,i)=>{
+      const ch=Math.round(c.fee*c.splitChris/100),fr=c.fee-ch;
+      sF+=c.fee;sC+=ch;sFr+=fr;
+      return `<tr><td>${c.name}</td><td class="right mono">${fmt(c.fee)}</td>
+      <td class="right"><span class="split-badge"><span class="sb-c">${c.splitChris}%C</span>/<span class="sb-f">${100-c.splitChris}%F</span></span></td>
+      <td class="right mono col-chris">${fmt(ch)}</td><td class="right mono col-franek">${fmt(fr)}</td>
+      <td class="right"><button class="btn-edit" onclick="openEditContractor('${c.id}')">✎</button> <button class="btn-sm" onclick="removeContractor(${i})">✕</button></td></tr>`;
+    }).join('');
+  }
+  document.getElementById('sum-fee').textContent=fmt(sF);
+  document.getElementById('sum-chris-fee').textContent=fmt(sC);
+  document.getElementById('sum-franek-fee').textContent=fmt(sFr);
+
+  const cashMonth=state.cash.filter(c=>c.month===mk);
+  const cbody=document.getElementById('tbl-cash-body');
+  let sc=0,scc=0,scf=0;
+  if(!cashMonth.length){
+    cbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">💰</div>Brak projektów cash</div></td></tr>';
+  } else {
+    cbody.innerHTML=cashMonth.map(c=>{
+      const ch=Math.round(c.kwota*c.splitChris/100),fr=c.kwota-ch;
+      sc+=c.kwota;scc+=ch;scf+=fr;
+      return `<tr><td>${c.name}</td><td class="right mono">${fmt(c.kwota)}</td>
+      <td class="right"><span class="split-badge"><span class="sb-c">${c.splitChris}%C</span>/<span class="sb-f">${100-c.splitChris}%F</span></span></td>
+      <td class="right mono col-chris">${fmt(ch)}</td><td class="right mono col-franek">${fmt(fr)}</td>
+      <td class="right"><button class="btn-sm" onclick="removeCash('${c.id}')">✕</button></td></tr>`;
+    }).join('');
+  }
+  document.getElementById('sum-cash').textContent=fmt(sc);
+  document.getElementById('sum-chris-cash').textContent=fmt(scc);
+  document.getElementById('sum-franek-cash').textContent=fmt(scf);
+
+  const b=calcBiznes();
+  const zusC=state.config.zusChris,zusF=state.config.zusFranek;
+  const pitC=state.config.pitChris,pitF=state.config.pitFranek;
+  const zyC=b.totalC-zusC-pitC, zyF=b.totalF-zusF-pitF;
+  document.getElementById('tbl-summary-body').innerHTML=`
+    <tr class="subtotal"><td>Suma przychodów brutto</td><td class="right mono">${fmt(b.total)}</td><td class="right mono col-chris">${fmt(b.totalC)}</td><td class="right mono col-franek">${fmt(b.totalF)}</td></tr>
+    <tr class="tax-row"><td>− ZUS</td><td class="right mono">${fmt(zusC+zusF)}</td><td class="right mono col-chris">−${fmt(zusC)}</td><td class="right mono col-franek">−${fmt(zusF)}</td></tr>
+    <tr class="tax-row"><td>− PIT (szacunek)</td><td class="right mono">${fmt(pitC+pitF)}</td><td class="right mono col-chris">−${fmt(pitC)}</td><td class="right mono col-franek">−${fmt(pitF)}</td></tr>
+    <tr class="zysk-row"><td>= Zysk netto</td><td class="right mono">${fmt(zyC+zyF)}</td><td class="right mono">${fmt(zyC)}</td><td class="right mono">${fmt(zyF)}</td></tr>
+  `;
+}
+
+// ─── KOSZTY ──────────────────────────────────────────────────────────────────
+function renderKoszty(){
+  const mk=getMK();
+  let s=0,sc=0,sf=0;
+  const tbody=document.getElementById('tbl-koszty-stale');
+  if(!state.kosztyStale.length){
+    tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🔧</div>Brak kosztów stałych</div></td></tr>';
+  } else {
+    tbody.innerHTML=state.kosztyStale.map((k,i)=>{
+      const c=Math.round(k.kwota*k.splitChris/100),f=k.kwota-c;
+      s+=k.kwota;sc+=c;sf+=f;
+      return `<tr><td>${k.name}</td><td><span class="status info">${k.kat}</span></td>
+      <td class="right mono">${fmt(k.kwota)}</td>
+      <td class="right mono col-chris">${k.splitChris}%</td><td class="right mono col-franek">${100-k.splitChris}%</td>
+      <td class="right mono col-chris">${fmt(c)}</td><td class="right mono col-franek">${fmt(f)}</td>
+      <td><button class="btn-edit" onclick="openEditKosztStaly('${k.id}')">✎</button> <button class="btn-sm" onclick="removeKosztStaly(${i})">✕</button></td></tr>`;
+    }).join('');
+  }
+  document.getElementById('sum-kstale').textContent=fmt(s);
+  document.getElementById('sum-kstale-chris').textContent=fmt(sc);
+  document.getElementById('sum-kstale-franek').textContent=fmt(sf);
+
+  const zmienne=state.kosztyZmienne.filter(k=>k.month===mk);
+  const zbody=document.getElementById('tbl-koszty-zmienne');
+  let zs=0,zsc=0,zsf=0;
+  if(!zmienne.length){
+    zbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📊</div>Brak kosztów zmiennych</div></td></tr>';
+  } else {
+    zbody.innerHTML=zmienne.map(k=>{
+      zs+=k.chris+k.franek;zsc+=k.chris;zsf+=k.franek;
+      return `<tr><td>${k.name}</td><td class="mono" style="font-size:11px">${k.data||''}</td>
+      <td class="right mono">${fmt(k.chris+k.franek)}</td>
+      <td class="right mono col-chris">${fmt(k.chris)}</td>
+      <td class="right mono col-franek">${fmt(k.franek)}</td>
+      <td><button class="btn-sm" onclick="removeKosztZmienny('${k.id}')">✕</button></td></tr>`;
+    }).join('');
+  }
+  document.getElementById('sum-kzmienne').textContent=fmt(zs);
+  document.getElementById('sum-kzmienne-chris').textContent=fmt(zsc);
+  document.getElementById('sum-kzmienne-franek').textContent=fmt(zsf);
+}
+
+// ─── POŻYCZKI ────────────────────────────────────────────────────────────────
+function calcPozyczkaData(p){
+  const today=new Date().toISOString().split('T')[0];
+  const overdue=p.status!=='splacona'&&p.termin&&p.termin<today;
+  const status=p.status==='splacona'?'splacona':overdue?'przeterminowana':'aktywna';
+  const splatyNetto=( p.splaty||[]).reduce((a,s)=>a+s.kwotaNetto,0);
+  const splatyBrutto=(p.splaty||[]).reduce((a,s)=>a+s.kwota,0);
+  const pozostalo=Math.max(0,p.kwota-splatyBrutto);
+  const pct=p.kwota>0?Math.round((splatyBrutto/p.kwota)*100):0;
+  return {status,splatyNetto,splatyBrutto,pozostalo,pct,overdue};
+}
+
+function renderPozyczki(){
+  const today=new Date().toISOString().split('T')[0];
+  let activeSum=0,activeNetto=0,activeCount=0,overdueSum=0,overdueCount=0,paidSum=0;
+
+  const tbody=document.getElementById('tbl-pozyczki');
+  if(!state.pozyczki.length){
+    tbody.innerHTML='<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">🤝</div>Brak pożyczek</div></td></tr>';
+  } else {
+    tbody.innerHTML=state.pozyczki.map((p,i)=>{
+      const d=calcPozyczkaData(p);
+      const n=netto(p.kwota,p.borrower);
+      const cls=d.status==='splacona'?'plus':d.status==='przeterminowana'?'minus':'zero';
+      if(d.status==='splacona') paidSum+=d.splatyNetto;
+      else if(d.status==='przeterminowana'){ overdueSum+=d.pozostalo; overdueCount++; }
+      else { activeSum+=d.pozostalo; activeNetto+=netto(d.pozostalo,p.borrower); activeCount++; }
+      const progCls=d.pct>=70?'prog-green':d.pct>=30?'prog-yellow':'prog-red';
+      const rataMsc=p.rataMsc||0;
+      return `<tr class="${d.status==='splacona'?'paid-row':d.overdue?'overdue-row':''}">
+        <td><strong>${p.borrower}</strong> ← ${p.lender}</td>
+        <td style="font-size:11px;color:var(--text2)">${p.cel||'—'}</td>
+        <td class="right mono">${fmt(p.kwota)}</td>
+        <td class="right mono" style="color:var(--green)">${fmt(n)}</td>
+        <td class="right mono">${p.odsetki||0}%</td>
+        <td style="font-size:11px">${fmtDate(p.data)}</td>
+        <td style="font-size:11px">${fmtDate(p.termin)}</td>
+        <td><span class="status ${cls}">${d.status}</span></td>
+        <td class="right" style="min-width:90px">
+          <input type="number" value="${rataMsc||''}" placeholder="0"
+            style="width:80px;padding:3px 6px;font-size:11px;font-family:'DM Mono',monospace;text-align:right;background:var(--bg3);border:1px solid ${rataMsc?'var(--yellow-bd)':'var(--border2)'};border-radius:4px;color:${rataMsc?'var(--yellow)':'var(--text2)'}"
+            onchange="setPozyczkaRataMsc('${p.id}',this.value)"
+            title="Zadeklarowana rata miesięczna (uwzględniana w cash flow)">
+        </td>
+        <td style="min-width:80px">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <div style="font-size:10px;color:var(--text3)">${d.pct}% spłacono</div>
+            <div class="prog-wrap"><div class="prog-fill ${progCls}" style="width:${d.pct}%"></div></div>
+          </div>
+        </td>
+        <td>
+          <div style="display:flex;gap:3px;align-items:center;flex-wrap:nowrap">
+            <button class="btn-sm" onclick="openHistoria('${p.id}')" title="Historia">${(p.splaty||[]).length>0?'📋'+(p.splaty||[]).length:'📋'}</button>
+            <button class="btn-sm" onclick="openSplataModal('${p.id}','pozyczka')">+spł.</button>
+            <button class="btn-edit" onclick="openEditPozyczka('${p.id}')">✎</button>
+            <button class="btn-sm" onclick="togglePozyczkaStatus(${i})">${d.status==='splacona'?'↺':'✓'}</button>
+            <button class="btn-sm" onclick="removePozyczka(${i})">✕</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('poz-active-sum').textContent=fmt(activeSum);
+  document.getElementById('poz-active-netto').textContent=fmt(activeNetto);
+  document.getElementById('poz-active-count').textContent=activeCount+' aktywnych · brutto';
+  document.getElementById('poz-overdue-sum').textContent=fmt(overdueSum);
+  document.getElementById('poz-overdue-count').textContent=overdueCount+' przeterminowanych';
+  document.getElementById('poz-paid-sum').textContent=fmt(paidSum);
+}
+
+function renderHarmonogram(){
+  const list=document.getElementById('harm-list');
+  const empty=document.getElementById('harm-empty');
+  const aktywne=state.pozyczki.filter(p=>p.status!=='splacona');
+  if(!aktywne.length){ list.innerHTML=''; empty.style.display=''; return; }
+  empty.style.display='none';
+
+  list.innerHTML=aktywne.map(p=>{
+    const d=calcPozyczkaData(p);
+    const splaty=p.splaty||[];
+    const harmonogram=generateHarmonogram(p);
+    const bodyRows=harmonogram.map((row,ri)=>{
+      const isPaid=splaty.some(s=>s.harmonogramIdx===ri);
+      const isOverdue=!isPaid&&row.date<new Date().toISOString().split('T')[0];
+      const rowCls=isPaid?'paid-row':isOverdue?'overdue-row':'';
+      return `<tr class="${rowCls}" style="font-size:11px">
+        <td class="mono" style="padding:6px 12px">${fmtDate(row.date)}</td>
+        <td style="padding:6px 12px">${p.borrower}</td>
+        <td class="right mono" style="padding:6px 12px">${fmt(row.brutto)}</td>
+        <td class="right mono" style="padding:6px 12px;color:var(--text3)">−${fmt(row.zus)}</td>
+        <td class="right mono" style="padding:6px 12px;color:var(--text3)">−${fmt(row.pit)}</td>
+        <td class="right mono" style="padding:6px 12px;color:var(--green);font-weight:600">${fmt(row.netto)}</td>
+        <td style="padding:6px 12px">${isPaid?'<span class="status plus">spłacono</span>':isOverdue?'<span class="status minus">przeterminowana</span>':'<span class="status zero">oczekuje</span>'}</td>
+        <td style="padding:6px 12px">
+          ${isPaid?'':'<button class="btn-sm" onclick="markHarmonogramPaid(\''+p.id+'\','+ri+')">✓ Zapłacono</button>'}
+        </td>
+      </tr>`;
+    }).join('');
+
+    return `<div class="harm-card">
+      <div class="harm-header" onclick="toggleHarm('harm-body-${p.id}')">
+        <div class="harm-header-info">
+          <div class="harm-header-name">${p.borrower} ← ${p.lender} <span style="color:var(--text3);font-weight:400;font-size:11px">· ${p.cel||'brak opisu'}</span></div>
+          <div class="harm-header-meta">${p.typ==='raty'?'Raty miesięczne · '+fmt(p.rata||0)+'/msc':'Jednorazowo'} · Termin: ${fmtDate(p.termin)} · Odsetki: ${p.odsetki||0}%</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="harm-header-amount">${fmt(p.kwota)}</div>
+          <div style="font-size:10px;color:var(--text3)">brutto · netto: ${fmt(netto(p.kwota,p.borrower))}</div>
+        </div>
+      </div>
+      <div class="harm-progress">
+        <div class="harm-progress-labels">
+          <span>Spłacono ${fmt(d.splatyBrutto)} / ${fmt(p.kwota)} (${d.pct}%)</span>
+          <span style="color:var(--yellow)">Pozostało: ${fmt(d.pozostalo)}</span>
+        </div>
+        <div class="prog-wrap" style="margin-bottom:10px"><div class="prog-fill ${d.pct>=70?'prog-green':d.pct>=30?'prog-yellow':'prog-red'}" style="width:${d.pct}%"></div></div>
+      </div>
+      <div class="harm-body" id="harm-body-${p.id}">
+        <div class="table-wrap" style="margin:0;border-radius:0;border:none;border-top:1px solid var(--border)">
+          <table class="data-tbl">
+            <thead>
+              <tr>
+                <th>Data spłaty</th>
+                <th>Kto płaci</th>
+                <th class="right">Brutto</th>
+                <th class="right">− ZUS</th>
+                <th class="right">− PIT</th>
+                <th class="right" style="color:var(--green)">Netto (wypłata)</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>${bodyRows||'<tr><td colspan="8" style="text-align:center;padding:16px;color:var(--text3)">Brak rat — dodaj harmonogram poniżej</td></tr>'}</tbody>
+          </table>
+        </div>
+        <div class="harm-actions">
+          <button class="btn btn-secondary btn-sm" onclick="openSplataModal('${p.id}','pozyczka')">+ Ręczna spłata</button>
+          ${p.typ==='raty'&&!p.rata?`<button class="btn btn-blue btn-sm" onclick="setRata('${p.id}')">⚙ Ustaw miesięczną ratę</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function generateHarmonogram(p){
+  if(!p.data||!p.kwota) return [];
+  const rows=[];
+  const odsetki=(p.odsetki||0)/100/12;
+
+  if(p.typ==='jednorazowo'){
+    const date=p.termin||p.data;
+    const zusAmt=p.borrower==='Chris'?state.config.zusChris:state.config.zusFranek;
+    const pitAmt=p.borrower==='Chris'?state.config.pitChris:state.config.pitFranek;
+    const typBrutto=p.borrower==='Chris'?16600:9700;
+    const zusRata=Math.round(p.kwota*(zusAmt/typBrutto));
+    const pitRata=Math.round(p.kwota*(pitAmt/typBrutto));
+    rows.push({date,brutto:p.kwota,zus:zusRata,pit:pitRata,netto:p.kwota-zusRata-pitRata,balance:0});
+    return rows;
+  }
+
+  const rata=p.rata||0;
+  if(!rata) return [];
+  let balance=p.kwota;
+  const startDate=new Date(p.data);
+  startDate.setMonth(startDate.getMonth()+1);
+  const zusAmt=p.borrower==='Chris'?state.config.zusChris:state.config.zusFranek;
+  const pitAmt=p.borrower==='Chris'?state.config.pitChris:state.config.pitFranek;
+  const typBrutto=p.borrower==='Chris'?16600:9700;
+
+  let iter=0;
+  while(balance>0&&iter<120){
+    iter++;
+    const interest=Math.round(balance*odsetki);
+    const payment=Math.min(rata,balance+interest);
+    const principal=payment-interest;
+    balance=Math.max(0,balance-principal);
+    const dateStr=startDate.toISOString().split('T')[0];
+    const zusRata=Math.round(payment*(zusAmt/typBrutto));
+    const pitRata=Math.round(payment*(pitAmt/typBrutto));
+    rows.push({date:dateStr,brutto:payment,zus:zusRata,pit:pitRata,netto:payment-zusRata-pitRata,balance,interest});
+    startDate.setMonth(startDate.getMonth()+1);
+    if(balance===0) break;
+  }
+  return rows;
+}
+
+function toggleHarm(id){
+  const el=document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+
+function setRata(pid){
+  const p=state.pozyczki.find(x=>x.id===pid);
+  if(!p) return;
+  const r=prompt('Podaj miesięczną ratę brutto (zł):');
+  if(!r||isNaN(r)) return;
+  p.rata=parseFloat(r);
+  renderHarmonogram();
+}
+
+function markHarmonogramPaid(pid, idx){
+  const p=state.pozyczki.find(x=>x.id===pid);
+  if(!p) return;
+  const harm=generateHarmonogram(p);
+  const row=harm[idx];
+  if(!row) return;
+  if(!p.splaty) p.splaty=[];
+  p.splaty.push({id:Date.now()+'',data:row.date,kwota:row.brutto,kwotaNetto:row.netto,harmonogramIdx:idx});
+  renderPozyczki();
+  renderHarmonogram();
+  renderDashboard();
+}
+
+// ─── KARTA BIZNES ─────────────────────────────────────────────────────────────
+function renderKarta(){
+  const list=document.getElementById('karta-list');
+  const empty=document.getElementById('karta-empty');
+  let totalSaldo=0,chrisSaldo=0,franekSaldo=0,totalInterest=0;
+
+  if(!state.karty.length){ list.innerHTML=''; empty.style.display=''; return; }
+  empty.style.display='none';
+
+  state.karty.forEach(k=>{
+    if(k.owner==='Chris') chrisSaldo+=k.saldo;
+    else if(k.owner==='Franek') franekSaldo+=k.saldo;
+    else { chrisSaldo+=k.saldo/2; franekSaldo+=k.saldo/2; }
+    totalSaldo+=k.saldo;
+  });
+
+  document.getElementById('karta-total-saldo').textContent=fmt(totalSaldo);
+  document.getElementById('karta-chris-saldo').textContent=fmt(chrisSaldo);
+  document.getElementById('karta-franek-saldo').textContent=fmt(franekSaldo);
+
+  list.innerHTML=state.karty.map((k,idx)=>{
+    const schedule=generateKartaSchedule(k);
+    const today=new Date().toISOString().split('T')[0];
+    const todayMM=today.slice(0,7);
+    const annualInterest=schedule.reduce((a,r)=>a+r.interest,0);
+    totalInterest+=annualInterest;
+    const splatyTotal=(k.splaty||[]).reduce((a,s)=>a+s.kwota,0);
+    const currentSaldo=Math.max(0,k.saldo-splatyTotal);
+    const pct=k.saldo>0?Math.round((1-currentSaldo/k.saldo)*100):100;
+    const ownerCls=k.owner==='Chris'?'chris':k.owner==='Franek'?'franek':'firma';
+    const monthsLeft=schedule.length;
+
+    const scheduleRows=schedule.slice(0,24).map((r,ri)=>{
+      const isCurrentMonth=r.month===todayMM;
+      const isPaid=(k.splaty||[]).some(s=>s.month===r.month);
+      return `<div class="karta-schedule-row ${isCurrentMonth?'current-month':''} ${isPaid?'paid':''}">
+        <span class="mono" style="color:${isCurrentMonth?'var(--yellow)':'var(--text3)'};font-weight:${isCurrentMonth?'600':'400'}">${r.dateLabel}</span>
+        <span style="color:var(--text3)">${isPaid?'✓ zapłacono':isCurrentMonth?'⬅ bieżący':r.balance<500?'ostatnia rata':''}</span>
+        <span class="mono right" style="color:var(--red)">${fmt(r.payment)}</span>
+        <span class="mono right" style="color:var(--text3);font-size:10px">+${fmt(r.interest)} odsetek</span>
+        <span class="mono right" style="color:var(--blue)">${fmt(r.balance)}</span>
+        <span>${isPaid?'':'<button class="btn-sm" style="font-size:9px" onclick="markKartaPaid(\''+k.id+'\',\''+r.month+'\','+r.payment+')">✓</button>'}</span>
+      </div>`;
+    }).join('');
+
+    return `<div class="karta-card">
+      <div class="karta-header">
+        <div style="flex:1">
+          <div class="karta-title">💳 ${k.name}</div>
+          <div class="karta-owner ${ownerCls}">${k.owner}</div>
+        </div>
+        <div class="karta-saldo">
+          <div class="karta-saldo-amount">${fmt(currentSaldo)}</div>
+          <div class="karta-saldo-sub">aktualne saldo</div>
+        </div>
+        <button class="btn-edit" onclick="openEditKarta('${k.id}')" style="margin-left:8px" title="Edytuj">✎</button>
+        <button class="btn-sm" onclick="removeKarta(${idx})" style="margin-left:4px">✕</button>
+      </div>
+      <div class="karta-meta">
+        <div class="karta-meta-item"><span class="karta-meta-label">Oprocentowanie:</span><span class="karta-meta-val">${k.rate}% rocznie</span></div>
+        <div class="karta-meta-item"><span class="karta-meta-label">Min rata:</span><span class="karta-meta-val">${fmt(k.minRata)}</span></div>
+        <div class="karta-meta-item"><span class="karta-meta-label">Planowana rata:</span><span class="karta-meta-val" style="color:var(--yellow)">${fmt(k.planRata)}</span></div>
+        <div class="karta-meta-item"><span class="karta-meta-label">Dzień spłaty:</span><span class="karta-meta-val">${k.dzien}. każdego msc</span></div>
+        <div class="karta-meta-item"><span class="karta-meta-label">Spłata za:</span><span class="karta-meta-val" style="color:${monthsLeft<=6?'var(--green)':monthsLeft<=18?'var(--yellow)':'var(--red)'}">${monthsLeft} msc</span></div>
+        <div class="karta-meta-item"><span class="karta-meta-label">Odsetki razem:</span><span class="karta-meta-val" style="color:var(--red)">${fmt(annualInterest)}</span></div>
+      </div>
+      <div style="padding:8px 16px 8px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px">
+          <span>Spłacono ${pct}%</span>
+          <span>${fmt(splatyTotal)} z ${fmt(k.saldo)}</span>
+        </div>
+        <div class="prog-wrap"><div class="prog-fill ${pct>=80?'prog-green':pct>=40?'prog-yellow':'prog-red'}" style="width:${pct}%"></div></div>
+      </div>
+      <div class="karta-plan">
+        <div class="karta-plan-title">Plan spłat miesiąc po miesiącu</div>
+        <div class="karta-input-row">
+          <div class="form-group">
+            <label style="font-size:10px">Zmień ratę</label>
+            <input type="number" value="${k.planRata}" onchange="updateKartaRata('${k.id}',this.value)" style="max-width:120px;padding:5px 8px;font-size:12px">
+          </div>
+          <button class="btn btn-secondary" style="margin-top:auto;font-size:11px" onclick="openSplataModal('${k.id}','karta')">+ Dodaj spłatę</button>
+        </div>
+        <div class="karta-schedule">
+          <div class="karta-schedule-row header">
+            <span>Data</span><span>Uwagi</span><span class="right">Rata</span><span class="right">Odsetki</span><span class="right">Saldo</span><span></span>
+          </div>
+          ${scheduleRows||'<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px">Ustaw ratę aby wygenerować harmonogram</div>'}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('karta-total-interest').textContent=fmt(totalInterest);
+}
+
+function generateKartaSchedule(k){
+  const rata=k.planRata||k.minRata||0;
+  if(!rata||k.saldo<=0) return [];
+  const monthly=k.rate/100/12;
+  let balance=k.saldo-(( k.splaty||[]).reduce((a,s)=>a+s.kwota,0));
+  balance=Math.max(0,balance);
+  const rows=[];
+  const now=new Date();
+  let d=new Date(now.getFullYear(),now.getMonth(),k.dzien||15);
+  if(d<=now) d.setMonth(d.getMonth()+1);
+  let iter=0;
+  while(balance>0&&iter<120){
+    iter++;
+    const interest=Math.round(balance*monthly);
+    const payment=Math.min(rata,balance+interest);
+    balance=Math.max(0,balance+interest-payment);
+    const month=d.toISOString().slice(0,7);
+    const dateLabel=d.getDate()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();
+    rows.push({month,dateLabel,payment,interest,balance});
+    d=new Date(d.getFullYear(),d.getMonth()+1,k.dzien||15);
+    if(balance===0) break;
+  }
+  return rows;
+}
+
+function markKartaPaid(kid,month,kwota){
+  const k=state.karty.find(x=>x.id===kid);
+  if(!k) return;
+  if(!k.splaty) k.splaty=[];
+  if(k.splaty.some(s=>s.month===month)){alert('Ta rata już jest zaznaczona jako zapłacona.');return;}
+  k.splaty.push({id:Date.now()+'',month,kwota,data:month+'-'+String(k.dzien||15).padStart(2,'0')});
+  renderKarta();
+  renderDashboard();
+}
+
+function updateKartaRata(kid,val){
+  const k=state.karty.find(x=>x.id===kid);
+  if(k){ k.planRata=parseFloat(val)||k.minRata; renderKarta(); }
+}
+
+// ─── SPŁATA MODAL (shared) ────────────────────────────────────────────────────
+let splataTarget={type:null,id:null};
+
+function openSplataModal(id,type){
+  splataTarget={type,id};
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('splata-data').value=today;
+  document.getElementById('splata-kwota').value='';
+  document.getElementById('splata-netto-preview').style.display='none';
+  document.getElementById('modal-splata-title').textContent=type==='pozyczka'?'Zarejestruj spłatę pożyczki':'Zarejestruj spłatę karty';
+  const btn=document.getElementById('modal-splata-btn');
+  btn.onclick=()=>doSplata();
+  openModal('modal-splata');
+}
+
+function previewSplataNetto(){
+  if(splataTarget.type!=='pozyczka'){document.getElementById('splata-netto-preview').style.display='none';return;}
+  const p=state.pozyczki.find(x=>x.id===splataTarget.id);
+  if(!p){return;}
+  const kwota=parseFloat(document.getElementById('splata-kwota').value)||0;
+  const n=netto(kwota,p.borrower);
+  document.getElementById('splata-netto-preview').style.display='';
+  document.getElementById('splata-netto-val').textContent=fmt(n);
+}
+
+function doSplata(){
+  const kwota=parseFloat(document.getElementById('splata-kwota').value)||0;
+  const data=document.getElementById('splata-data').value;
+  if(!kwota){alert('Podaj kwotę.');return;}
+  if(splataTarget.type==='pozyczka'){
+    const p=state.pozyczki.find(x=>x.id===splataTarget.id);
+    if(!p) return;
+    if(!p.splaty) p.splaty=[];
+    p.splaty.push({id:Date.now()+'',data,kwota,kwotaNetto:netto(kwota,p.borrower)});
+    if(p.kwota-p.splaty.reduce((a,s)=>a+s.kwota,0)<=0) p.status='splacona';
+  } else {
+    const k=state.karty.find(x=>x.id===splataTarget.id);
+    if(!k) return;
+    if(!k.splaty) k.splaty=[];
+    const month=data.slice(0,7);
+    k.splaty.push({id:Date.now()+'',month,kwota,data});
+  }
+  closeModal('modal-splata');
+  renderPozyczki();
+  renderHarmonogram();
+  renderKarta();
+  renderDashboard();
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDashboard(){
+  const mk=getMK();
+  const b=calcBiznes();
+  const zusC=state.config.zusChris,zusF=state.config.zusFranek;
+  const pitC=state.config.pitChris,pitF=state.config.pitFranek;
+  const zyskC=b.totalC-zusC-pitC, zyskF=b.totalF-zusF-pitF;
+  const zyskTotal=zyskC+zyskF;
+  const brutto=b.total;
+
+  // totalSaldo = pełne saldo (do KPI i health score)
+  // dlugC/dlugF = miesięczna rata karty (cash flow miesięczny)
+  let dlugC=0,dlugF=0,totalSaldo=0;
+  state.karty.forEach(k=>{
+    const splatyTotal=(k.splaty||[]).reduce((a,s)=>a+s.kwota,0);
+    const cur=Math.max(0,k.saldo-splatyTotal);
+    totalSaldo+=cur;
+    const mRata=cur>0?(k.planRata||k.minRata||0):0; // tylko miesięczna rata
+    if(k.owner==='Chris') dlugC+=mRata;
+    else if(k.owner==='Franek') dlugF+=mRata;
+    else {dlugC+=mRata/2;dlugF+=mRata/2;}
+  });
+
+  // pozC/pozF = zadeklarowana rata msc (rataMsc) lub rata z harmonogramu (raty type)
+  let pozC=0,pozF=0,pozTotal=0;
+  state.pozyczki.filter(p=>p.status!=='splacona').forEach(p=>{
+    const d=calcPozyczkaData(p);
+    pozTotal+=d.pozostalo;
+    // priorytet: ręcznie zadeklarowana rataMsc > rata z harmonogramu > 0
+    const mRata=p.rataMsc||(p.typ==='raty'?p.rata:0)||0;
+    if(p.borrower==='Chris') pozC+=mRata;
+    else if(p.borrower==='Franek') pozF+=mRata;
+  });
+
+  const netChris=zyskC-dlugC-pozC;
+  const netFranek=zyskF-dlugF-pozF;
+
+  // PERSONA CARDS
+  document.getElementById('dash-chris-net').textContent=fmt(netChris);
+  document.getElementById('dash-franek-net').textContent=fmt(netFranek);
+
+  const renderPersonaRows=(zysk,zus,pit,dlug,poz,obciazenia)=>({
+    html:`
+      <div class="persona-row"><span class="persona-row-label">Przychód brutto</span><span class="persona-row-val" style="color:var(--accent)">${fmt(zysk+zus+pit)}</span></div>
+      <div class="persona-row"><span class="persona-row-label">− ZUS</span><span class="persona-row-val" style="color:var(--text3)">−${fmt(zus)}</span></div>
+      <div class="persona-row"><span class="persona-row-label">− PIT</span><span class="persona-row-val" style="color:var(--text3)">−${fmt(pit)}</span></div>
+      <div class="persona-row"><span class="persona-row-label">= Zysk netto</span><span class="persona-row-val" style="color:var(--green)">${fmt(zysk)}</span></div>
+      <div class="persona-divider"></div>
+      <div class="persona-row"><span class="persona-row-label">Karty — rata msc</span><span class="persona-row-val" style="color:var(--red)">${dlug>0?'−'+fmt(dlug):'—'}</span></div>
+      <div class="persona-row"><span class="persona-row-label">Pożyczki — rata msc</span><span class="persona-row-val" style="color:var(--yellow)">${poz>0?'−'+fmt(poz):'—'}</span></div>
+    `,
+    pct: zysk+zus+pit>0 ? Math.round(zysk/(zysk+zus+pit)*100) : 0
+  });
+
+  const rc=renderPersonaRows(zyskC,zusC,pitC,dlugC,pozC);
+  const rf=renderPersonaRows(zyskF,zusF,pitF,dlugF,pozF);
+  document.getElementById('dash-chris-rows').innerHTML=rc.html;
+  document.getElementById('dash-franek-rows').innerHTML=rf.html;
+  document.getElementById('dash-chris-bar').style.width=rc.pct+'%';
+  document.getElementById('dash-franek-bar').style.width=rf.pct+'%';
+  document.getElementById('dash-chris-bar-pct').textContent='netto '+rc.pct+'%';
+  document.getElementById('dash-franek-bar-pct').textContent='netto '+rf.pct+'%';
+
+  // KPIs
+  document.getElementById('kpi-przychod').textContent=fmt(brutto);
+  document.getElementById('kpi-zysk').textContent=fmt(zyskTotal);
+  document.getElementById('kpi-koszty').textContent=fmt(calcKoszty());
+  document.getElementById('kpi-pozyczki').textContent=fmt(pozTotal);
+  const pozActive=state.pozyczki.filter(p=>p.status!=='splacona').length;
+  document.getElementById('kpi-pozyczki-sub').textContent=pozActive+' aktywnych';
+  document.getElementById('kpi-karty').textContent=fmt(totalSaldo);
+  const marza=brutto>0?Math.round(zyskTotal/brutto*100):0;
+  document.getElementById('kpi-marza').textContent=marza+'%';
+
+  // ALERTS
+  const alerts=[];
+  const today2=new Date().toISOString().split('T')[0];
+  state.pozyczki.filter(p=>p.status!=='splacona'&&p.termin&&p.termin<today2).forEach(p=>{
+    alerts.push({type:'red',icon:'🔴',text:`<strong>Pożyczka przeterminowana:</strong> ${p.borrower} ← ${p.lender} · ${fmt(p.kwota)} brutto`});
+  });
+  if(totalSaldo>30000) alerts.push({type:'yellow',icon:'⚡',text:`<strong>Wysokie saldo kart: ${fmt(totalSaldo)}</strong> — rozważ przyspieszenie spłat`});
+  if(zyskTotal>0) alerts.push({type:'green',icon:'✓',text:`<strong>Zysk miesiąca: ${fmt(zyskTotal)}</strong> (Chris: ${fmt(zyskC)}, Franek: ${fmt(zyskF)})`});
+  const nextMonth=new Date(); nextMonth.setDate(1); nextMonth.setMonth(nextMonth.getMonth()+1);
+  state.pozyczki.filter(p=>p.status!=='splacona'&&p.termin&&p.termin>=today2&&p.termin<nextMonth.toISOString().split('T')[0]).forEach(p=>{
+    alerts.push({type:'yellow',icon:'⏰',text:`<strong>Termin pożyczki w tym miesiącu:</strong> ${p.borrower} musi spłacić ${fmt(p.kwota)} do ${fmtDate(p.termin)}`});
+  });
+
+  document.getElementById('dash-alerts').innerHTML=alerts.map(a=>`<div class="alert alert-${a.type}"><span class="alert-icon">${a.icon}</span><div class="alert-text">${a.text}</div></div>`).join('');
+
+  // HEALTH SCORE
+  let score=100, factors=[];
+  if(zyskTotal<0){score-=30;factors.push({label:'Zysk ujemny',val:'-30',color:'var(--red)'});}
+  if(totalSaldo>zyskTotal*3&&zyskTotal>0){score-=20;factors.push({label:'Dług > 3× zysk',val:'-20',color:'var(--red)'});}
+  else if(totalSaldo>0){score-=10;factors.push({label:'Aktywny dług',val:'-10',color:'var(--yellow)'});}
+  if(pozTotal>zyskTotal&&zyskTotal>0){score-=15;factors.push({label:'Pożyczki > zysk',val:'-15',color:'var(--yellow)'});}
+  const overdue=state.pozyczki.filter(p=>p.status!=='splacona'&&p.termin&&p.termin<today2).length;
+  if(overdue>0){score-=20*overdue;factors.push({label:overdue+' przeterminowanych',val:'-'+(20*overdue),color:'var(--red)'});}
+  if(marza>=50) factors.push({label:'Dobra marża '+marza+'%',val:'+0',color:'var(--green)'});
+  score=Math.max(0,Math.min(100,score));
+  const scoreColor=score>=70?'var(--green)':score>=40?'var(--yellow)':'var(--red)';
+  const scoreLabel=score>=70?'Dobry':score>=40?'Średni':'Słaby';
+  document.getElementById('health-score').textContent=score;
+  document.getElementById('health-score').style.color=scoreColor;
+  document.getElementById('health-label').textContent=scoreLabel;
+  const circ=283;
+  document.getElementById('health-ring-fill').style.strokeDashoffset=String(circ-(circ*score/100));
+  document.getElementById('health-ring-fill').style.stroke=scoreColor;
+  document.getElementById('health-factors').innerHTML=factors.map(f=>`<div style="display:flex;justify-content:space-between;"><span style="color:var(--text2)">${f.label}</span><span style="color:${f.color};font-family:'DM Mono'">${f.val}</span></div>`).join('');
+
+  // UPCOMING PAYMENTS
+  const upcoming=[];
+  const now3=new Date();
+  state.karty.forEach(k=>{
+    const sch=generateKartaSchedule(k);
+    if(sch.length){
+      const next=sch[0];
+      const daysLeft=Math.ceil((new Date(next.month+'-'+String(k.dzien).padStart(2,'0'))-now3)/86400000);
+      upcoming.push({date:next.dateLabel,desc:`Rata karty <strong>${k.name}</strong>`,amount:next.payment,cls:daysLeft<=7?'ui-red':daysLeft<=14?'ui-yellow':'ui-blue',daysLeft});
+    }
+  });
+  state.pozyczki.filter(p=>p.status!=='splacona'&&p.termin).forEach(p=>{
+    const daysLeft=Math.ceil((new Date(p.termin)-now3)/86400000);
+    if(daysLeft<=60) upcoming.push({date:fmtDate(p.termin),desc:`Spłata pożyczki: <strong>${p.borrower}</strong>`,amount:calcPozyczkaData(p).pozostalo,cls:daysLeft<0?'ui-red':daysLeft<=14?'ui-yellow':'ui-blue',daysLeft});
+  });
+  upcoming.sort((a,b)=>a.daysLeft-b.daysLeft);
+  const upList=document.getElementById('upcoming-list');
+  upList.innerHTML=upcoming.slice(0,6).map(u=>`<div class="upcoming-item ${u.cls}">
+    <div class="upcoming-date">${u.date}</div>
+    <div class="upcoming-desc">${u.desc}</div>
+    <div class="upcoming-amount" style="color:var(--red)">${fmt(u.amount)}</div>
+  </div>`).join('')||'<div style="color:var(--text3);font-size:12px;text-align:center;padding:12px">Brak nadchodzących płatności</div>';
+
+  updateCharts(b.totalC,b.totalF,zyskC,zyskF);
+}
+
+function calcKoszty(){
+  const mk=getMK();
+  let s=0;
+  state.kosztyStale.forEach(k=>s+=k.kwota);
+  state.kosztyZmienne.filter(k=>k.month===mk).forEach(k=>s+=k.chris+k.franek);
+  return s;
+}
+
+// ─── CHARTS ──────────────────────────────────────────────────────────────────
+let chartBar=null, chartTrend=null;
+
+function initCharts(){
+  Chart.register(ChartDataLabels);
+
+  const ctx1=document.getElementById('chart-bar').getContext('2d');
+  chartBar=new Chart(ctx1,{
+    type:'bar',
+    data:{
+      labels:['Brutto','ZUS+PIT','Zysk netto'],
+      datasets:[
+        {label:'Chris',data:[0,0,0],backgroundColor:'rgba(77,159,255,.5)',borderColor:'#4d9fff',borderWidth:1,borderRadius:4},
+        {label:'Franek',data:[0,0,0],backgroundColor:'rgba(45,212,160,.5)',borderColor:'#2dd4a0',borderWidth:1,borderRadius:4}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:true,
+      plugins:{
+        legend:{labels:{color:'#8b91a8',font:{family:'DM Sans',size:10}}},
+        datalabels:{color:'#f5a623',font:{family:'DM Mono',size:9,weight:'500'},anchor:'end',align:'top',
+          formatter:v=>v>0?fmtN(v):''}
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a5068',font:{size:10}}},
+        y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a5068',font:{size:10},callback:v=>fmtN(v)+' zł'}}
+      }
+    }
+  });
+
+  const ctx2=document.getElementById('chart-trend').getContext('2d');
+  const trendLabels=[];
+  for(let i=5;i>=0;i--){ const d=new Date(); d.setMonth(d.getMonth()-i); trendLabels.push(MONTHS[d.getMonth()].slice(0,3)+' '+d.getFullYear().toString().slice(2)); }
+  chartTrend=new Chart(ctx2,{
+    type:'line',
+    data:{
+      labels:trendLabels,
+      datasets:[
+        {label:'Chris netto',data:[0,0,0,0,0,0],borderColor:'#4d9fff',backgroundColor:'rgba(77,159,255,.08)',tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#4d9fff'},
+        {label:'Franek netto',data:[0,0,0,0,0,0],borderColor:'#2dd4a0',backgroundColor:'rgba(45,212,160,.08)',tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#2dd4a0'}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:true,
+      plugins:{
+        legend:{labels:{color:'#8b91a8',font:{family:'DM Sans',size:10}}},
+        datalabels:{display:false}
+      },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a5068',font:{size:10}}},
+        y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#4a5068',font:{size:10},callback:v=>fmtN(v)}}
+      }
+    }
+  });
+}
+
+function updateCharts(chrisBrutto,franekBrutto,chrisNetto,franekNetto){
+  if(chartBar){
+    const zusC=state.config.zusChris,zusF=state.config.zusFranek;
+    const pitC=state.config.pitChris,pitF=state.config.pitFranek;
+    chartBar.data.datasets[0].data=[chrisBrutto,zusC+pitC,chrisNetto];
+    chartBar.data.datasets[1].data=[franekBrutto,zusF+pitF,franekNetto];
+    chartBar.update();
+  }
+  if(chartTrend){
+    chartTrend.data.datasets[0].data=[0,0,0,0,0,chrisNetto];
+    chartTrend.data.datasets[1].data=[0,0,0,0,0,franekNetto];
+    chartTrend.update();
+  }
+}
+
+// ─── ADD FUNCTIONS ────────────────────────────────────────────────────────────
+function addContractor(){
+  const name=document.getElementById('c-name').value.trim();
+  const fee=parseFloat(document.getElementById('c-fee').value)||0;
+  const sc=parseFloat(document.getElementById('c-split-chris').value)||0;
+  if(!name||!fee){alert('Wypełnij nazwę i kwotę.');return;}
+  state.contractors.push({id:Date.now()+'',name,fee,splitChris:sc});
+  closeModal('modal-add-contractor');
+  document.getElementById('c-name').value='';document.getElementById('c-fee').value='';
+  renderBiznes();renderDashboard();
+}
+function removeContractor(i){if(!confirm('Usunąć?'))return;state.contractors.splice(i,1);renderBiznes();renderDashboard();}
+
+function addCash(){
+  const name=document.getElementById('cash-name').value.trim();
+  const kwota=parseFloat(document.getElementById('cash-kwota').value)||0;
+  const sc=parseFloat(document.getElementById('cash-split-chris').value)||0;
+  if(!name||!kwota){alert('Wypełnij dane.');return;}
+  state.cash.push({id:Date.now()+'',name,kwota,splitChris:sc,month:getMK()});
+  closeModal('modal-add-cash');
+  document.getElementById('cash-name').value='';document.getElementById('cash-kwota').value='';
+  renderBiznes();renderDashboard();
+}
+function removeCash(id){state.cash=state.cash.filter(c=>c.id!==id);renderBiznes();renderDashboard();}
+
+function addKosztStaly(){
+  const name=document.getElementById('ks-name').value.trim();
+  const kat=document.getElementById('ks-kat').value;
+  const kwota=parseFloat(document.getElementById('ks-kwota').value)||0;
+  const sc=parseFloat(document.getElementById('ks-split').value)||0;
+  if(!name||!kwota){alert('Wypełnij dane.');return;}
+  state.kosztyStale.push({id:Date.now()+'',name,kat,kwota,splitChris:sc});
+  closeModal('modal-add-koszt-staly');
+  document.getElementById('ks-name').value='';
+  renderKoszty();renderDashboard();
+}
+function removeKosztStaly(i){state.kosztyStale.splice(i,1);renderKoszty();renderDashboard();}
+
+function addKosztZmienny(){
+  const name=document.getElementById('kz-name').value.trim();
+  const data=document.getElementById('kz-data').value;
+  const ch=parseFloat(document.getElementById('kz-chris').value)||0;
+  const fr=parseFloat(document.getElementById('kz-franek').value)||0;
+  if(!name){alert('Podaj nazwę.');return;}
+  state.kosztyZmienne.push({id:Date.now()+'',name,data,chris:ch,franek:fr,month:getMK()});
+  closeModal('modal-add-koszt-zmienny');
+  document.getElementById('kz-name').value='';
+  renderKoszty();renderDashboard();
+}
+function removeKosztZmienny(id){state.kosztyZmienne=state.kosztyZmienne.filter(k=>k.id!==id);renderKoszty();renderDashboard();}
+
+function addPozyczka(){
+  const borrower=document.getElementById('poz-borrower').value;
+  const lender=document.getElementById('poz-lender').value;
+  const cel=document.getElementById('poz-cel').value.trim();
+  const kwota=parseFloat(document.getElementById('poz-kwota').value)||0;
+  const odsetki=parseFloat(document.getElementById('poz-odsetki').value)||0;
+  const data=document.getElementById('poz-data').value;
+  const termin=document.getElementById('poz-termin').value;
+  const typ=document.getElementById('poz-typ').value;
+  const rata=parseFloat(document.getElementById('poz-rata').value)||0;
+  if(!kwota){alert('Podaj kwotę.');return;}
+  state.pozyczki.push({id:Date.now()+'',borrower,lender,cel,kwota,odsetki,data,termin,typ,rata,status:'aktywna',splaty:[]});
+  closeModal('modal-add-pozyczka');
+  renderPozyczki();renderDashboard();
+}
+function removePozyczka(i){if(!confirm('Usunąć?'))return;state.pozyczki.splice(i,1);renderPozyczki();renderDashboard();}
+function togglePozyczkaStatus(i){state.pozyczki[i].status=state.pozyczki[i].status==='splacona'?'aktywna':'splacona';renderPozyczki();renderDashboard();}
+
+function setPozyczkaRataMsc(pid, val){
+  const p=state.pozyczki.find(x=>x.id===pid);
+  if(!p) return;
+  p.rataMsc=parseFloat(val)||0;
+  renderDashboard(); // odśwież cash flow natychmiast
+}
+
+function addKarta(){
+  const name=document.getElementById('k-name').value.trim();
+  const owner=document.getElementById('k-owner').value;
+  const saldo=parseFloat(document.getElementById('k-saldo').value)||0;
+  const rate=parseFloat(document.getElementById('k-rate').value)||0;
+  const minRata=parseFloat(document.getElementById('k-min-rata').value)||0;
+  const planRata=parseFloat(document.getElementById('k-plan-rata').value)||0;
+  const dzien=parseInt(document.getElementById('k-dzien').value)||15;
+  if(!name||!saldo){alert('Wypełnij dane.');return;}
+  state.karty.push({id:Date.now()+'',name,owner,saldo,rate,minRata,planRata,dzien,splaty:[]});
+  closeModal('modal-add-karta');
+  document.getElementById('k-name').value='';
+  renderKarta();renderDashboard();
+}
+function removeKarta(i){if(!confirm('Usunąć?'))return;state.karty.splice(i,1);renderKarta();renderDashboard();}
+
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+function loadConfigUI(){
+  const cfg=getFirebaseConfig()||{};
+  ['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'].forEach(k=>{
+    const el=document.getElementById('cfg-'+k); if(el) el.value=cfg[k]||'';
+  });
+  document.getElementById('cfg-zus-chris').value=state.config.zusChris;
+  document.getElementById('cfg-zus-franek').value=state.config.zusFranek;
+  document.getElementById('cfg-pit-chris').value=state.config.pitChris;
+  document.getElementById('cfg-pit-franek').value=state.config.pitFranek;
+}
+
+function saveConfig(){
+  const fc={
+    apiKey:document.getElementById('cfg-apiKey').value.trim(),
+    authDomain:document.getElementById('cfg-authDomain').value.trim(),
+    projectId:document.getElementById('cfg-projectId').value.trim(),
+    storageBucket:document.getElementById('cfg-storageBucket').value.trim(),
+    messagingSenderId:document.getElementById('cfg-messagingSenderId').value.trim(),
+    appId:document.getElementById('cfg-appId').value.trim(),
+  };
+  if(fc.apiKey) localStorage.setItem(FIREBASE_CONFIG_KEY,JSON.stringify(fc));
+  state.config.zusChris=parseFloat(document.getElementById('cfg-zus-chris').value)||1289;
+  state.config.zusFranek=parseFloat(document.getElementById('cfg-zus-franek').value)||813;
+  state.config.pitChris=parseFloat(document.getElementById('cfg-pit-chris').value)||3154;
+  state.config.pitFranek=parseFloat(document.getElementById('cfg-pit-franek').value)||1843;
+  LS.set('config',state.config);
+  showSavePopup(['Ustawienia zapisane',fc.apiKey?'Firebase config ✓':'Firebase — brak klucza']);
+  if(fc.apiKey) setTimeout(()=>location.reload(),1500);
+}
+
+// ─── BACKUP ──────────────────────────────────────────────────────────────────
+function backupJSON(){
+  const data=JSON.stringify(state,null,2);
+  const url=URL.createObjectURL(new Blob([data],{type:'application/json'}));
+  const a=document.createElement('a');a.href=url;a.download='ffh-backup-'+new Date().toISOString().split('T')[0]+'.json';a.click();URL.revokeObjectURL(url);
+}
+function importJSON(event){
+  const file=event.target.files[0];if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      ['contractors','cash','kosztyStale','kosztyZmienne','pozyczki','karty','config'].forEach(k=>{if(d[k]) state[k]=d[k];});
+      renderAll();showSavePopup(['Import JSON ✓']);
+    }catch(err){alert('Błąd: '+err.message);}
+  };
+  r.readAsText(file);event.target.value='';
+}
+
+// ─── SAVE POPUP ──────────────────────────────────────────────────────────────
+let _spt=null;
+function showSavePopup(items){
+  const p=document.getElementById('save-popup');
+  document.getElementById('save-popup-list').innerHTML=items.filter(Boolean).map(i=>'• '+i).join('<br>');
+  p.classList.add('show');
+  clearTimeout(_spt);_spt=setTimeout(()=>p.classList.remove('show'),3000);
+}
+
+// ─── EDIT FUNCTIONS ──────────────────────────────────────────────────────────
+let _editId = null;
+
+function openEditContractor(id){
+  const c=state.contractors.find(x=>x.id===id); if(!c) return;
+  _editId=id;
+  document.getElementById('ec-name').value=c.name;
+  document.getElementById('ec-fee').value=c.fee;
+  document.getElementById('ec-split-chris').value=c.splitChris;
+  document.getElementById('ec-fp').textContent=(100-c.splitChris)+'% Franek';
+  openModal('modal-edit-contractor');
+}
+function saveEditContractor(){
+  const c=state.contractors.find(x=>x.id===_editId); if(!c) return;
+  c.name=document.getElementById('ec-name').value.trim()||c.name;
+  c.fee=parseFloat(document.getElementById('ec-fee').value)||c.fee;
+  c.splitChris=parseFloat(document.getElementById('ec-split-chris').value)||c.splitChris;
+  closeModal('modal-edit-contractor');
+  renderBiznes(); renderDashboard(); showSavePopup(['Kontrahent zaktualizowany']);
+}
+
+function openEditKosztStaly(id){
+  const k=state.kosztyStale.find(x=>x.id===id); if(!k) return;
+  _editId=id;
+  document.getElementById('eks-name').value=k.name;
+  document.getElementById('eks-kat').value=k.kat;
+  document.getElementById('eks-kwota').value=k.kwota;
+  document.getElementById('eks-split').value=k.splitChris;
+  document.getElementById('eks-fp').textContent=(100-k.splitChris)+'%';
+  openModal('modal-edit-koszt-staly');
+}
+function saveEditKosztStaly(){
+  const k=state.kosztyStale.find(x=>x.id===_editId); if(!k) return;
+  k.name=document.getElementById('eks-name').value.trim()||k.name;
+  k.kat=document.getElementById('eks-kat').value;
+  k.kwota=parseFloat(document.getElementById('eks-kwota').value)||k.kwota;
+  k.splitChris=parseFloat(document.getElementById('eks-split').value)||k.splitChris;
+  closeModal('modal-edit-koszt-staly');
+  renderKoszty(); renderDashboard(); showSavePopup(['Koszt stały zaktualizowany']);
+}
+
+function openEditPozyczka(id){
+  const p=state.pozyczki.find(x=>x.id===id); if(!p) return;
+  _editId=id;
+  document.getElementById('ep-borrower').value=p.borrower;
+  document.getElementById('ep-lender').value=p.lender;
+  document.getElementById('ep-cel').value=p.cel||'';
+  document.getElementById('ep-kwota').value=p.kwota;
+  document.getElementById('ep-odsetki').value=p.odsetki||0;
+  document.getElementById('ep-data').value=p.data||'';
+  document.getElementById('ep-termin').value=p.termin||'';
+  document.getElementById('ep-typ').value=p.typ||'jednorazowo';
+  document.getElementById('ep-rata').value=p.rata||0;
+  document.getElementById('ep-rataMsc').value=p.rataMsc||0;
+  openModal('modal-edit-pozyczka');
+}
+function saveEditPozyczka(){
+  const p=state.pozyczki.find(x=>x.id===_editId); if(!p) return;
+  p.borrower=document.getElementById('ep-borrower').value;
+  p.lender=document.getElementById('ep-lender').value;
+  p.cel=document.getElementById('ep-cel').value.trim();
+  p.kwota=parseFloat(document.getElementById('ep-kwota').value)||p.kwota;
+  p.odsetki=parseFloat(document.getElementById('ep-odsetki').value)||0;
+  p.data=document.getElementById('ep-data').value;
+  p.termin=document.getElementById('ep-termin').value;
+  p.typ=document.getElementById('ep-typ').value;
+  p.rata=parseFloat(document.getElementById('ep-rata').value)||0;
+  p.rataMsc=parseFloat(document.getElementById('ep-rataMsc').value)||0;
+  closeModal('modal-edit-pozyczka');
+  renderPozyczki(); renderDashboard(); showSavePopup(['Pożyczka zaktualizowana']);
+}
+
+function openEditKarta(id){
+  const k=state.karty.find(x=>x.id===id); if(!k) return;
+  _editId=id;
+  document.getElementById('ek-name').value=k.name;
+  document.getElementById('ek-owner').value=k.owner;
+  document.getElementById('ek-saldo').value=k.saldo;
+  document.getElementById('ek-rate').value=k.rate;
+  document.getElementById('ek-min-rata').value=k.minRata;
+  document.getElementById('ek-plan-rata').value=k.planRata;
+  document.getElementById('ek-dzien').value=k.dzien||15;
+  openModal('modal-edit-karta');
+}
+function saveEditKarta(){
+  const k=state.karty.find(x=>x.id===_editId); if(!k) return;
+  k.name=document.getElementById('ek-name').value.trim()||k.name;
+  k.owner=document.getElementById('ek-owner').value;
+  k.saldo=parseFloat(document.getElementById('ek-saldo').value)||k.saldo;
+  k.rate=parseFloat(document.getElementById('ek-rate').value)||0;
+  k.minRata=parseFloat(document.getElementById('ek-min-rata').value)||0;
+  k.planRata=parseFloat(document.getElementById('ek-plan-rata').value)||0;
+  k.dzien=parseInt(document.getElementById('ek-dzien').value)||15;
+  closeModal('modal-edit-karta');
+  renderKarta(); renderDashboard(); showSavePopup(['Karta zaktualizowana']);
+}
+
+// ─── HISTORIA SPŁAT ───────────────────────────────────────────────────────────
+function openHistoria(pid){
+  const p=state.pozyczki.find(x=>x.id===pid); if(!p) return;
+  const splaty=p.splaty||[];
+  document.getElementById('historia-title').textContent=`Historia spłat: ${p.borrower} ← ${p.lender} · ${p.cel||''}`;
+  const sumB=splaty.reduce((a,s)=>a+s.kwota,0);
+  const sumN=splaty.reduce((a,s)=>a+(s.kwotaNetto||0),0);
+  const pozostalo=Math.max(0,p.kwota-sumB);
+  document.getElementById('hist-sum-brutto').textContent=fmt(sumB);
+  document.getElementById('hist-sum-netto').textContent=fmt(sumN);
+  document.getElementById('hist-pozostalo').textContent=fmt(pozostalo);
+  const body=document.getElementById('historia-body');
+  if(!splaty.length){
+    body.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">Brak zarejestrowanych spłat</div>';
+  } else {
+    body.innerHTML=splaty.map((s,i)=>`
+      <div class="historia-row">
+        <span style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--text2)">${fmtDate(s.data)}</span>
+        <span style="font-size:11px;color:var(--text3)">${s.harmonogramIdx!=null?'Harmonogram':'Ręczna'}</span>
+        <span style="text-align:right;font-family:\'DM Mono\',monospace;font-weight:500">${fmt(s.kwota)}</span>
+        <span style="text-align:right;font-family:\'DM Mono\',monospace;color:var(--green)">${fmt(s.kwotaNetto||0)}</span>
+        <span style="text-align:right"><button class="btn-sm" onclick="deleteSplata('${pid}',${i})" style="color:var(--red)">✕</button></span>
+      </div>`).join('');
+  }
+  openModal('modal-historia');
+}
+
+function deleteSplata(pid, idx){
+  if(!confirm('Usunąć tę spłatę?')) return;
+  const p=state.pozyczki.find(x=>x.id===pid); if(!p||!p.splaty) return;
+  p.splaty.splice(idx,1);
+  if(p.status==='splacona') p.status='aktywna';
+  openHistoria(pid);
+  renderPozyczki(); renderDashboard();
+}
+
+// ─── PRINT / PDF ──────────────────────────────────────────────────────────────
+function printReport(){
+  const mk=getMK();
+  const b=calcBiznes();
+  const zusC=state.config.zusChris,zusF=state.config.zusFranek;
+  const pitC=state.config.pitChris,pitF=state.config.pitFranek;
+  const zyskC=b.totalC-zusC-pitC, zyskF=b.totalF-zusF-pitF;
+  const pozyczki=state.pozyczki.filter(p=>p.status!=='splacona');
+  const kartyTotal=state.karty.reduce((a,k)=>{
+    const s=(k.splaty||[]).reduce((x,sp)=>x+sp.kwota,0);
+    return a+Math.max(0,k.saldo-s);
+  },0);
+
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(`<!DOCTYPE html><html><head>
+  <meta charset="UTF-8">
+  <title>FFH Rozliczenie — ${MONTHS[currentMonth]} ${currentYear}</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;color:#1a1a1a;padding:32px;font-size:13px;line-height:1.5}
+    h1{font-size:20px;font-weight:600;margin-bottom:4px}
+    h2{font-size:14px;font-weight:600;margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid #ff6b35;color:#ff6b35}
+    .subtitle{color:#666;font-size:12px;margin-bottom:28px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+    .persona{border:1px solid #e0e0e0;border-top:3px solid;border-radius:8px;padding:16px}
+    .persona.chris{border-top-color:#4d9fff}
+    .persona.franek{border-top-color:#2dd4a0}
+    .persona-name{font-size:11px;text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:8px}
+    .persona.chris .persona-name{color:#4d9fff}
+    .persona.franek .persona-name{color:#2dd4a0}
+    .big{font-family:'DM Mono',monospace;font-size:24px;font-weight:500;margin-bottom:4px}
+    .persona.chris .big{color:#4d9fff}
+    .persona.franek .big{color:#2dd4a0}
+    .row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;font-size:12px}
+    .row.total{font-weight:600;border-top:2px solid #e0e0e0;border-bottom:none;padding-top:6px}
+    .muted{color:#888}
+    .green{color:#2dd4a0}
+    .red{color:#ff4d6a}
+    .yellow{color:#f5a623}
+    .mono{font-family:'DM Mono',monospace}
+    table{width:100%;border-collapse:collapse;margin-bottom:16px}
+    th{background:#f5f5f5;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:7px 10px;text-align:left;border-bottom:2px solid #e0e0e0}
+    td{padding:7px 10px;border-bottom:1px solid #f0f0f0;font-size:12px}
+    tr:last-child td{border-bottom:none}
+    .right{text-align:right}
+    .footer{margin-top:32px;padding-top:12px;border-top:1px solid #e0e0e0;font-size:11px;color:#aaa;display:flex;justify-content:space-between}
+    @media print{@page{margin:15mm;size:A4}button{display:none}}
+  </style>
+  </head><body>
+  <h1>Family Finance Hub — Rozliczenie miesięczne</h1>
+  <div class="subtitle">${MONTHS[currentMonth]} ${currentYear} · Wygenerowano: ${new Date().toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+
+  <h2>Przychody i podział</h2>
+  <div class="grid2">
+    <div class="persona chris">
+      <div class="persona-name">Chris</div>
+      <div class="big">${fmt(zyskC)}</div>
+      <div class="muted" style="font-size:11px;margin-bottom:12px">zysk netto</div>
+      <div class="row"><span>Przychód brutto</span><span class="mono">${fmt(b.totalC)}</span></div>
+      <div class="row"><span class="muted">− ZUS</span><span class="mono muted">−${fmt(zusC)}</span></div>
+      <div class="row"><span class="muted">− PIT</span><span class="mono muted">−${fmt(pitC)}</span></div>
+      <div class="row total"><span>= Zysk netto</span><span class="mono green">${fmt(zyskC)}</span></div>
+    </div>
+    <div class="persona franek">
+      <div class="persona-name">Franek</div>
+      <div class="big">${fmt(zyskF)}</div>
+      <div class="muted" style="font-size:11px;margin-bottom:12px">zysk netto</div>
+      <div class="row"><span>Przychód brutto</span><span class="mono">${fmt(b.totalF)}</span></div>
+      <div class="row"><span class="muted">− ZUS</span><span class="mono muted">−${fmt(zusF)}</span></div>
+      <div class="row"><span class="muted">− PIT</span><span class="mono muted">−${fmt(pitF)}</span></div>
+      <div class="row total"><span>= Zysk netto</span><span class="mono green">${fmt(zyskF)}</span></div>
+    </div>
+  </div>
+
+  <h2>Kontrahenci / Allegro Fee</h2>
+  <table>
+    <thead><tr><th>Kontrahent</th><th class="right">Fee brutto</th><th class="right">Split</th><th class="right">Chris</th><th class="right">Franek</th></tr></thead>
+    <tbody>${state.contractors.map(c=>{
+      const ch=Math.round(c.fee*c.splitChris/100);
+      return `<tr><td>${c.name}</td><td class="right mono">${fmt(c.fee)}</td><td class="right">${c.splitChris}% / ${100-c.splitChris}%</td><td class="right mono" style="color:#4d9fff">${fmt(ch)}</td><td class="right mono" style="color:#2dd4a0">${fmt(c.fee-ch)}</td></tr>`;
+    }).join('')}</tbody>
+    <tfoot><tr style="font-weight:600;background:#f5f5f5"><td>Suma</td><td class="right mono">${fmt(b.sumFee)}</td><td></td><td class="right mono" style="color:#4d9fff">${fmt(b.cFee)}</td><td class="right mono" style="color:#2dd4a0">${fmt(b.fFee)}</td></tr></tfoot>
+  </table>
+
+  ${pozyczki.length?`<h2>Pożyczki aktywne</h2>
+  <table>
+    <thead><tr><th>Pożyczkobiorca ← Dawca</th><th>Cel</th><th class="right">Brutto</th><th class="right">Netto</th><th>Termin</th><th>Spłacono</th></tr></thead>
+    <tbody>${pozyczki.map(p=>{
+      const d=calcPozyczkaData(p);
+      return `<tr><td>${p.borrower} ← ${p.lender}</td><td class="muted">${p.cel||'—'}</td><td class="right mono">${fmt(p.kwota)}</td><td class="right mono" style="color:#2dd4a0">${fmt(netto(p.kwota,p.borrower))}</td><td>${fmtDate(p.termin)}</td><td>${d.pct}% (${fmt(d.splatyBrutto)})</td></tr>`;
+    }).join('')}</tbody>
+  </table>`:''}
+
+  ${state.karty.length?`<h2>Karty kredytowe</h2>
+  <table>
+    <thead><tr><th>Karta</th><th>Właściciel</th><th class="right">Saldo</th><th class="right">Rata plan</th><th class="right">Opr. %</th></tr></thead>
+    <tbody>${state.karty.map(k=>{
+      const s=(k.splaty||[]).reduce((a,sp)=>a+sp.kwota,0);
+      return `<tr><td>${k.name}</td><td>${k.owner}</td><td class="right mono red">${fmt(Math.max(0,k.saldo-s))}</td><td class="right mono">${fmt(k.planRata)}</td><td class="right mono">${k.rate}%</td></tr>`;
+    }).join('')}</tbody>
+  </table>`:''}
+
+  <div class="footer">
+    <span>Family Finance Hub · ${MONTHS[currentMonth]} ${currentYear}</span>
+    <span>Łączny przychód brutto: <strong>${fmt(b.total)}</strong> · Zysk netto: <strong>${fmt(zyskC+zyskF)}</strong></span>
+  </div>
+  <br><button onclick="window.print()" style="padding:8px 18px;background:#ff6b35;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">🖨 Drukuj / Zapisz PDF</button>
+  </body></html>`);
+  w.document.close();
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+initFirebase();
+</script>
+</body>
+</html>
