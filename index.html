@@ -478,7 +478,7 @@ th.col-franek{color:var(--green)}
 </div>
 
 <div id="topbar" style="display:none">
-  <div class="logo">Family <span>Finance</span></div>
+  <div class="logo">Mplace <span>Finance</span></div>
   <nav class="nav-tabs">
     <button class="nav-tab t-orange active" onclick="showSection('dashboard',this)">Dashboard</button>
     <button class="nav-tab t-blue" onclick="showSection('biznes',this)">Biznes</button>
@@ -921,29 +921,27 @@ th.col-franek{color:var(--green)}
     <div class="section-title">Ustawienia</div>
   </div>
   <div class="chart-box">
-    <div class="chart-title">Firebase Config</div>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Wklej config z Firebase Console. Po zapisaniu strona przeładuje się i aktywuje sync.</p>
-    <div class="form-grid">
-      <div class="form-group"><label>API Key</label><input type="text" id="cfg-apiKey" placeholder="AIza..."></div>
-      <div class="form-grid cols2">
-        <div class="form-group"><label>Auth Domain</label><input type="text" id="cfg-authDomain" placeholder="projekt.firebaseapp.com"></div>
-        <div class="form-group"><label>Project ID</label><input type="text" id="cfg-projectId"></div>
-      </div>
-      <div class="form-grid cols2">
-        <div class="form-group"><label>Storage Bucket</label><input type="text" id="cfg-storageBucket"></div>
-        <div class="form-group"><label>Messaging Sender ID</label><input type="text" id="cfg-messagingSenderId"></div>
-      </div>
-      <div class="form-group"><label>App ID</label><input type="text" id="cfg-appId"></div>
-    </div>
-    <div class="divider-label" style="margin:16px 0"><span>ZUS i PIT (domyślne miesięczne)</span></div>
+    <div class="chart-title">ZUS i PIT — domyślne miesięczne kwoty</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:16px">
+      Te wartości są odejmowane od przychodów brutto aby wyliczyć zysk netto. Zmień jeśli Twoje stawki ZUS lub zaliczki PIT uległy zmianie.
+    </p>
     <div class="form-grid cols2">
-      <div class="form-group"><label>ZUS — Chris (zł)</label><input type="number" id="cfg-zus-chris" value="1289"></div>
-      <div class="form-group"><label>ZUS — Franek (zł)</label><input type="number" id="cfg-zus-franek" value="813"></div>
-      <div class="form-group"><label>PIT szacunek — Chris (zł)</label><input type="number" id="cfg-pit-chris" value="3154"></div>
-      <div class="form-group"><label>PIT szacunek — Franek (zł)</label><input type="number" id="cfg-pit-franek" value="1843"></div>
+      <div class="form-group"><label>ZUS — Chris (zł/msc)</label><input type="number" id="cfg-zus-chris" value="1289"></div>
+      <div class="form-group"><label>ZUS — Franek (zł/msc)</label><input type="number" id="cfg-zus-franek" value="813"></div>
+      <div class="form-group"><label>PIT zaliczka — Chris (zł/msc)</label><input type="number" id="cfg-pit-chris" value="3154"></div>
+      <div class="form-group"><label>PIT zaliczka — Franek (zł/msc)</label><input type="number" id="cfg-pit-franek" value="1843"></div>
     </div>
     <br>
     <button class="btn btn-primary" onclick="saveConfig()">Zapisz ustawienia</button>
+  </div>
+  <div class="chart-box" style="margin-top:12px">
+    <div class="chart-title">Informacje techniczne</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.8">
+      <div>🔥 Firebase: <span style="color:var(--green);font-family:var(--mono)">mplace-finance</span></div>
+      <div>☁ Sync: dane zapisywane automatycznie w Firestore</div>
+      <div>📍 Hosting: <span style="font-family:var(--mono)">github.com/Mplace-BZ/Mplace-Finance</span></div>
+      <div style="margin-top:8px;color:var(--text3)">Wersja aplikacji: 2.0 · Ostatnia aktualizacja: Marzec 2026</div>
+    </div>
   </div>
 </div>
 
@@ -2345,10 +2343,6 @@ function removeKarta(i){if(!confirm('Usunąć?'))return;state.karty.splice(i,1);
 
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 function loadConfigUI(){
-  const cfg=getFirebaseConfig()||{};
-  ['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'].forEach(k=>{
-    const el=document.getElementById('cfg-'+k); if(el) el.value=cfg[k]||'';
-  });
   document.getElementById('cfg-zus-chris').value=state.config.zusChris;
   document.getElementById('cfg-zus-franek').value=state.config.zusFranek;
   document.getElementById('cfg-pit-chris').value=state.config.pitChris;
@@ -2356,22 +2350,13 @@ function loadConfigUI(){
 }
 
 function saveConfig(){
-  const fc={
-    apiKey:document.getElementById('cfg-apiKey').value.trim(),
-    authDomain:document.getElementById('cfg-authDomain').value.trim(),
-    projectId:document.getElementById('cfg-projectId').value.trim(),
-    storageBucket:document.getElementById('cfg-storageBucket').value.trim(),
-    messagingSenderId:document.getElementById('cfg-messagingSenderId').value.trim(),
-    appId:document.getElementById('cfg-appId').value.trim(),
-  };
-  if(fc.apiKey) localStorage.setItem(FIREBASE_CONFIG_KEY,JSON.stringify(fc));
   state.config.zusChris=parseFloat(document.getElementById('cfg-zus-chris').value)||1289;
   state.config.zusFranek=parseFloat(document.getElementById('cfg-zus-franek').value)||813;
   state.config.pitChris=parseFloat(document.getElementById('cfg-pit-chris').value)||3154;
   state.config.pitFranek=parseFloat(document.getElementById('cfg-pit-franek').value)||1843;
   LS.set('config',state.config);
-  showSavePopup(['Ustawienia zapisane',fc.apiKey?'Firebase config ✓':'Firebase — brak klucza']);
-  if(fc.apiKey) setTimeout(()=>location.reload(),1500);
+  renderAll();
+  showSavePopup(['ZUS Chris: '+state.config.zusChris+' zł','ZUS Franek: '+state.config.zusFranek+' zł','PIT Chris: '+state.config.pitChris+' zł','PIT Franek: '+state.config.pitFranek+' zł']);
 }
 
 // ─── BACKUP ──────────────────────────────────────────────────────────────────
